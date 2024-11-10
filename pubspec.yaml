@@ -1,0 +1,35 @@
+name: gallery_app
+description: "A new Flutter project."
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  
+  # Firebase dependencies
+  firebase_core: ^3.7.0  # Firebase Core to initialize Firebase
+  firebase_auth: ^5.3.2   # Firebase Authentication (if you're using Firebase Auth)
+  cloud_firestore: ^5.4.5 # Firestore Database (if you're using Firestore)
+  firebase_storage: ^12.3.5 # Firebase Storage (if you're storing images or files)
+  firebase_messaging: ^15.1.4 # Firebase Cloud Messaging (for push notifications)
+  image_picker: ^1.1.2
+  image: ^4.3.0
+  exif: ^3.3.0
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
