@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gallery_app/services/firestore_service.dart';
 import 'package:gallery_app/models/photo.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class TimelineView extends StatefulWidget {
   @override
@@ -14,7 +15,6 @@ class _TimelineViewState extends State<TimelineView> {
   @override
   void initState() {
     super.initState();
-    // Fetch years when the screen loads
     _years = _firestoreService.fetchYears();
   }
 
@@ -27,8 +27,7 @@ class _TimelineViewState extends State<TimelineView> {
           IconButton(
             icon: Icon(Icons.add_a_photo),
             onPressed: () {
-              // Navigate to the Upload Image screen
-              Navigator.pushNamed(context, '/upload');
+              Navigator.pushNamed(context, '/upload'); // Navigate to the Upload Image screen
             },
           ),
         ],
@@ -47,6 +46,7 @@ class _TimelineViewState extends State<TimelineView> {
           }
 
           final years = snapshot.data!;
+          years.sort((a, b) => int.parse(b).compareTo(int.parse(a)));
 
           return ListView.builder(
             itemCount: years.length,
@@ -58,7 +58,13 @@ class _TimelineViewState extends State<TimelineView> {
                 builder: (context, photoSnapshot) {
                   if (photoSnapshot.connectionState == ConnectionState.waiting) {
                     return ExpansionTile(
-                      title: Text('$year'),
+                      title: Text(
+                        '$year',
+                        style: TextStyle(
+                          fontSize: 22, 
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       children: [Center(child: CircularProgressIndicator())],
                     );
                   }
@@ -78,19 +84,85 @@ class _TimelineViewState extends State<TimelineView> {
                   final photos = photoSnapshot.data!;
 
                   return ExpansionTile(
-                    title: Text('$year'),
-                    children: photos.map((photo) {
-                      return ListTile(
-                        leading: Image.network(photo.url),
-                        title: Text(photo.description),
-                      );
-                    }).toList(),
+                    title: Text(
+                      '$year',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    children: [
+                      GridView.builder(
+                        shrinkWrap: true, // To prevent grid from taking full height
+                        physics: NeverScrollableScrollPhysics(), // Disable scrolling on the grid
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, // Two images per row
+                          crossAxisSpacing: 10.0, // Space between columns
+                          mainAxisSpacing: 10.0, // Space between rows
+                          childAspectRatio: 1, // Aspect ratio for the images (square)
+                        ),
+                        itemCount: photos.length,
+                        itemBuilder: (context, index) {
+                          final photo = photos[index];
+                          return GestureDetector(
+                            onTap: () {
+                              // Navigate to a detailed view of the image
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => FullImageScreen(photo: photo),
+                                ),
+                              );
+                            },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: CachedNetworkImage(
+                                imageUrl: photo.url,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) =>
+                                    Center(child: CircularProgressIndicator()),
+                                errorWidget: (context, url, error) => Icon(Icons.error),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   );
                 },
               );
             },
           );
         },
+      ),
+    );
+  }
+
+  // Method to format the date nicely
+  String _formatDate(DateTime date) {
+    return "${date.day}/${date.month}/${date.year}";
+  }
+}
+
+// Full Image Screen to show the image in full size
+class FullImageScreen extends StatelessWidget {
+  final Photo photo;
+
+  FullImageScreen({required this.photo});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Full Image'),
+      ),
+      body: Center(
+        child: CachedNetworkImage(
+          imageUrl: photo.url,
+          fit: BoxFit.contain,
+          placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+          errorWidget: (context, url, error) => Icon(Icons.error),
+        ),
       ),
     );
   }
