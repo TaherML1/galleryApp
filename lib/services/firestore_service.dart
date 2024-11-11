@@ -28,7 +28,9 @@ Future<List<Photo>> fetchPhotos(String year) async {
         .collection('photos')
         .doc(year)
         .collection('photos')
+        .orderBy('timestamp', descending: true)
         .get();
+        
 
     if (snapshot.docs.isEmpty) {
       print('No photos found for year $year');
@@ -55,6 +57,7 @@ Future<List<Photo>> fetchPhotos(String year) async {
   // Add a photo to a specific year
   Future<void> addPhoto(String year, Map<String, dynamic> photoData) async {
     try {
+      
       await _db
           .collection('photos')  // Root collection
           .doc(year)             // Document for the year
