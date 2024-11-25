@@ -18,8 +18,7 @@ class FirestoreService {
     }
   }
 
-  // Fetch photos for a specific year
-  // Fetch photos for a specific year
+ 
 Future<List<Photo>> fetchPhotos(String year) async {
   try {
     print('Fetching photos for year $year...'); // Log function entry
