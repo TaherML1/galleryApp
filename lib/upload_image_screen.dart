@@ -28,7 +28,16 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
 
   // Method to upload image and save its URL to Firestore
  Future<void> _uploadImage() async {
-  if (_image == null) return;
+  if (_image == null) {
+ ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text("You should choose a picture first  "),
+      backgroundColor: Colors.red,
+    )
+  );
+  return;
+  }
+ 
 
   try {
     // Upload the image to Firebase Storage and get the URL
@@ -42,9 +51,22 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
       'timestamp': DateTime.now().toIso8601String(),
     });
 
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Image uploaded successfully"),
+        backgroundColor: Colors.green,
+      )
+    );
+
     print('Image uploaded and Firestore data saved successfully');
   } catch (e) {
     print('Error uploading image: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Error uploading images : $e"),
+        backgroundColor: Colors.red,
+      )
+    );
   }
 }
 

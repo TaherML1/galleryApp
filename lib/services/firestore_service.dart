@@ -1,71 +1,82 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:logger/logger.dart';
 import '../../models/photo.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final Logger _logger = Logger();
 
-  // Fetch list of years (i.e., document IDs)
   Future<List<String>> fetchYears() async {
     try {
-      // Get all documents in the 'photos' collection where each document represents a year
       QuerySnapshot snapshot = await _db.collection('photos').get();
-
-      // Extract the document IDs (years) and return them
       return snapshot.docs.map((doc) => doc.id).toList();
     } catch (e) {
-      print('Error fetching years: $e');
+      _logger.e('Error fetching years: $e');
       return [];
     }
   }
 
- 
-Future<List<Photo>> fetchPhotos(String year) async {
-  try {
-    print('Fetching photos for year $year...'); // Log function entry
-
-    QuerySnapshot snapshot = await _db
+  Stream<List<Photo>> fetchPhotosStream(String year) {
+    return _db
         .collection('photos')
         .doc(year)
         .collection('photos')
         .orderBy('timestamp', descending: true)
-        .get();
-        
-
-    if (snapshot.docs.isEmpty) {
-      print('No photos found for year $year');
-    } else {
-      print('Retrieved ${snapshot.docs.length} documents from Firestore');
-    }
-
-    // Log each document's data
-    List<Photo> photos = snapshot.docs.map((doc) {
-      print('Document data: ${doc.data()}'); // Print Firestore data
-      return Photo.fromFirestore(doc.data() as Map<String, dynamic>);
-    }).toList();
-
-    print('Fetched ${photos.length} photos for year $year');
-    return photos;
-  } catch (e) {
-    print('Error fetching photos for year $year: $e');
-    return [];
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return Photo.fromFirestore(doc.data() as Map<String, dynamic>, doc.id);
+      }).toList();
+    });
   }
-}
 
-
-
-  // Add a photo to a specific year
   Future<void> addPhoto(String year, Map<String, dynamic> photoData) async {
     try {
-      
       await _db
-          .collection('photos')  // Root collection
-          .doc(year)             // Document for the year
-          .collection('photos')  // Subcollection for photos
+          .collection('photos')
+          .doc(year)
+          .collection('photos')
           .add(photoData);
-
-      print('Photo added for year $year');
+      _logger.i('Photo added for year $year');
     } catch (e) {
-      print('Error adding photo: $e');
+      _logger.e('Error adding photo: $e');
+    }
+  }
+
+  Future<void> deletePhoto(String year, String photoId, String imageUrl) async {
+    try {
+      await _db
+          .collection('photos')
+          .doc(year)
+          .collection('photos')
+          .doc(photoId)
+          .delete();
+      _logger.i('Photo metadata deleted from Firestore.');
+
+       Reference photoRef = _storage.refFromURL(imageUrl);
+    await photoRef.delete();
+    
+
+      _logger.i("Photo deleted from Firebase Storage");
+    } catch (e) {
+      _logger.e('Error deleting photo: $e');
+    }
+  }
+
+  // Update the favorite status of a photo
+  Future<void> updateFavoriteStatus(String year, String photoId, bool isFavorite) async {
+    try {
+      await _db
+          .collection('photos')
+          .doc(year)
+          .collection('photos')
+          .doc(photoId)
+          .update({'favorite': isFavorite});
+      _logger.i('Favorite status updated for photo $photoId in year $year');
+    } catch (e) {
+      _logger.e('Error updating favorite status: $e');
     }
   }
 }
