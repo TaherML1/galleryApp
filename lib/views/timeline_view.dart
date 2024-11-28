@@ -246,42 +246,52 @@ class _FullImageScreenState extends State<FullImageScreen> {
                         _downloadAndShareImage(widget.photo.url);
                       },
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () async {
-                        // Show confirmation dialog
-                        bool confirmDelete = await showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Delete Photo'),
-                            content: const Text('Are you sure you want to delete this photo?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(false),
-                                child: const Text('Cancel'),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(true),
-                                child: const Text('Delete'),
-                              ),
-                            ],
-                          ),
-                        );
+                 IconButton(
+  icon: const Icon(Icons.delete),
+  onPressed: () async {
+    // Show confirmation dialog
+    bool confirmDelete = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Photo'),
+        content: const Text('Are you sure you want to delete this photo?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
 
-                        if (confirmDelete == true) {
-                        final FirestoreService _firestoreService = FirestoreService();
-                        
-                        await _firestoreService.deletePhoto(widget.photo.year.toString(), widget.photo.id, widget.photo.url);
+    if (confirmDelete == true) {
+      final FirestoreService _firestoreService = FirestoreService();
 
+      try {
+        // Attempt to delete the photo
+        await _firestoreService.deletePhoto(widget.photo.year.toString(), widget.photo.id, widget.photo.url);
 
+        // If the deletion succeeds, show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Photo deleted successfully!')),
+        );
+        
+        // Return to the previous screen
+        Navigator.pop(context); // Go back to the timeline
+      } catch (e) {
+        // If there is an error, show an error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete photo: $e')),
+        );
+      }
+    }
+  },
+),
 
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Photo deleted!')),
-                          );
-                          Navigator.pop(context); // Go back to the timeline
-                        }
-                      },
-                    ),
                   ],
                 ),
               ),

@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Photo Timeline App',
+      title: 'Photo Gallery App',
       theme: ThemeData(
         primarySwatch: Colors.purple,
       ),
