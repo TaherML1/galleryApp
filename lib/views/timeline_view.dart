@@ -4,7 +4,6 @@ import 'package:gallery_app/models/photo.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,7 +29,7 @@ class _TimelineViewState extends State<TimelineView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Photo Timeline'),
+        title: const Text('Photo Gallery'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add_a_photo),
@@ -208,6 +207,35 @@ class _FullImageScreenState extends State<FullImageScreen> {
   }
 }
 
+Future<void> _saveImageToGallery(String imageUrl) async {
+  try {
+    // Get the directory to store the image (for Android/iOS it will be in Downloads folder)
+    final directory = await getExternalStorageDirectory();
+    if (directory == null) throw Exception('Unable to get external storage directory.');
+
+    // Define a path to save the image
+    final filePath = '${directory.path}/${widget.photo.id}.jpg';
+
+    // Download the image using Dio
+    final response = await Dio().download(imageUrl, filePath);
+
+    if (response.statusCode == 200) {
+      // Show a success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Image saved successfully!')),
+      );
+    } else {
+      throw Exception('Failed to download image');
+    }
+  } catch (e) {
+    // Show an error message in case of failure
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error saving image: $e')),
+    );
+  }
+}
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -233,6 +261,13 @@ class _FullImageScreenState extends State<FullImageScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     IconButton(
+                     
+                      icon: const Icon(Icons.save_alt),
+                       onPressed: (){
+                        _saveImageToGallery(widget.photo.url);
+                       }, 
+                    ),
+                   IconButton(
                       icon: Icon(
                         _isFavorite ? Icons.favorite : Icons.favorite_border,
                         color: _isFavorite ? Colors.red : null,

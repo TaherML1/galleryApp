@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:gallery_app/views/timeline_view.dart';  
-import 'package:gallery_app/upload_image_screen.dart';  
+import 'package:gallery_app/views/upload_image_screen.dart';  
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "C:/Users/Taher/FlutterProject/GalleryApp/gallery_app/linux"
+    "cmake.sourceDirectory": "C:/Users/Taher/FlutterProject/GalleryApp/gallery_app/linux",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }
