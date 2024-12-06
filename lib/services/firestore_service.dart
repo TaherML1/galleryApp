@@ -79,4 +79,20 @@ class FirestoreService {
       _logger.e('Error updating favorite status: $e');
     }
   }
+
+
+  Future<void> updatePhotoDescription(String year , String photoId , String newDescription) async{
+    try{
+      await _db 
+      .collection('photos')
+      .doc(year)
+      .collection('photos')
+      .doc(photoId)
+      .update({'description' : newDescription});
+      _logger.i('new Descitpion updated for photo $photoId in year $year');
+    }catch(e){
+      _logger.e('Error updating description status : $e');
+    }
+
+  }
 }

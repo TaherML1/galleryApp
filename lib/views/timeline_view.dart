@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:gallery_app/main.dart';
 import 'package:gallery_app/services/firestore_service.dart';
 import 'package:gallery_app/models/photo.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:get_it/get_it.dart';
 class TimelineView extends StatefulWidget {
-  const TimelineView({Key? key}) : super(key: key); // Added key parameter
+  const TimelineView({Key? key}) : super(key: key);
 
   @override
   _TimelineViewState createState() => _TimelineViewState();
@@ -18,6 +20,7 @@ class TimelineView extends StatefulWidget {
 class _TimelineViewState extends State<TimelineView> {
   late Future<List<String>> _years;
   final FirestoreService _firestoreService = FirestoreService();
+  String? _selectedYear;
 
   @override
   void initState() {
@@ -30,305 +33,312 @@ class _TimelineViewState extends State<TimelineView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Photo Gallery'),
+        backgroundColor: const Color(0xFF3E4A59), // Cool dark color
         actions: [
           IconButton(
             icon: const Icon(Icons.add_a_photo),
             onPressed: () {
-              Navigator.pushNamed(context, '/upload'); // Navigate to the Upload Image screen
+              Navigator.pushNamed(context, '/upload');
+            },
+          ),
+          FutureBuilder<List<String>>(
+            future: _years,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('No years found.'));
+              }
+
+              final years = snapshot.data!;
+              years.sort((a, b) => int.parse(b).compareTo(int.parse(a)));
+
+              return DropdownButton<String>(
+                value: _selectedYear,
+                hint: const Text('Select Year'),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedYear = newValue;
+                  });
+                },
+                items: years.map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+              );
             },
           ),
         ],
       ),
-      body: FutureBuilder<List<String>>(
-        future: _years,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No years found.'));
-          }
+      body: _selectedYear != null
+          ? StreamBuilder<List<Photo>>(
+              stream: _firestoreService.fetchPhotosStream(_selectedYear!),
+              builder: (context, photoSnapshot) {
+                if (photoSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (photoSnapshot.hasError) {
+                  return const Center(child: Text('Error loading photos.'));
+                }
+                if (!photoSnapshot.hasData || photoSnapshot.data!.isEmpty) {
+                  return const Center(child: Text('No photos found.'));
+                }
 
-          final years = snapshot.data!;
-          years.sort((a, b) => int.parse(b).compareTo(int.parse(a)));
+                final photos = photoSnapshot.data!;
 
-          return ListView.builder(
-            itemCount: years.length,
-            itemBuilder: (context, index) {
-              final year = years[index];
+                return SizedBox(
+                  height: MediaQuery.of(context).size.height, // Use full height
+                  child: PageView.builder(
+                    controller: PageController(viewportFraction: 1), // Controls slide snapping and fraction
+                    itemCount: (photos.length / 4).ceil(), // Number of pages based on photos
+                    itemBuilder: (context, pageIndex) {
+                      final startIndex = pageIndex * 4;
+                      final endIndex = (startIndex + 4 > photos.length)
+                          ? photos.length
+                          : startIndex + 4;
 
-              return StreamBuilder<List<Photo>>(
-                stream: _firestoreService.fetchPhotosStream(year),
-                builder: (context, photoSnapshot) {
-                  if (photoSnapshot.connectionState == ConnectionState.waiting) {
-                    return ExpansionTile(
-                      title: Text(
-                        '$year',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      children: const [Center(child: CircularProgressIndicator())],
-                    );
-                  }
-                  if (photoSnapshot.hasError) {
-                    return ExpansionTile(
-                      title: Text('$year'),
-                      children: const [Center(child: Text('Error loading photos.'))],
-                    );
-                  }
-                  if (!photoSnapshot.hasData || photoSnapshot.data!.isEmpty) {
-                    return ExpansionTile(
-                      title: Text('$year'),
-                      children: const [Center(child: Text('No photos found.'))],
-                    );
-                  }
+                      final photoSubset = photos.sublist(startIndex, endIndex);
 
-                  final photos = photoSnapshot.data!;
-
-                  return ExpansionTile(
-                    title: Text(
-                      '$year',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    children: [
-                      GridView.builder(
-                        shrinkWrap: true, // To prevent grid from taking full height
-                        physics: const NeverScrollableScrollPhysics(), // Disable scrolling on the grid
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2, // Two images per row
-                          crossAxisSpacing: 10.0, // Space between columns
-                          mainAxisSpacing: 10.0, // Space between rows
-                          childAspectRatio: 1, // Aspect ratio for the images (square)
-                        ),
-                        itemCount: photos.length,
-                        itemBuilder: (context, index) {
-                          final photo = photos[index];
-                          return GestureDetector(
-                            onTap: () {
-                              // Navigate to a detailed view of the image
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => FullImageScreen(photo: photo),
+                      return Padding(
+                        padding: const EdgeInsets.all(4.0), // Reduced padding
+                        child: Card(
+                          elevation: 5,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: GridView.builder(
+                            physics: const NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing:12.0, // Reduced spacing
+                              mainAxisSpacing: 12.0, // Reduced spacing
+                              childAspectRatio: 0.47, // More square-like photos
+                            ),
+                            itemCount: photoSubset.length,
+                            itemBuilder: (context, index) {
+                              final photo = photoSubset[index];
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => FullImageScreen(photo: photo),
+                                    ),
+                                  );
+                                },
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: CachedNetworkImage(
+                                    imageUrl: photo.url,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) =>
+                                        const Center(child: CircularProgressIndicator()),
+                                    errorWidget: (context, url, error) => const Icon(Icons.error),
+                                  ),
                                 ),
                               );
                             },
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: CachedNetworkImage(
-                                imageUrl: photo.url,
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) =>
-                                    const Center(child: CircularProgressIndicator()),
-                                errorWidget: (context, url, error) => const Icon(Icons.error),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-          );
-        },
-      ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            )
+          : const Center(child: Text('Select a year to view photos.')),
     );
   }
 }
 
-// Full Image Screen to show the image in full size
+
 class FullImageScreen extends StatefulWidget {
   final Photo photo;
 
-  const FullImageScreen({Key? key, required this.photo}) : super(key: key); // Added key parameter
+  const FullImageScreen({Key? key, required this.photo}) : super(key: key);
 
   @override
   _FullImageScreenState createState() => _FullImageScreenState();
 }
 
 class _FullImageScreenState extends State<FullImageScreen> {
-  late bool _isFavorite =false;
+  late bool _isFavorite;
+  late String _description = '';
+  bool _isEditing = false;
   final Logger _logger = Logger();
+  final TextEditingController _descriptionController = TextEditingController();
+  final FirestoreService _firestoreService = getIt<FirestoreService>();
 
   @override
   void initState() {
     super.initState();
-    _loadFavoriteStatus();
-  }
-
-  Future<void> _loadFavoriteStatus() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _isFavorite = prefs.getBool(widget.photo.id) ?? false;
-    });
+    _isFavorite = widget.photo.favorite;
+    _description = widget.photo.description ?? '';
+    _descriptionController.text = _description;
   }
 
   Future<void> _toggleFavoriteStatus() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _isFavorite = !_isFavorite;
-      prefs.setBool(widget.photo.id, _isFavorite);
+    });
+    // Update the favorite status in Firestore
+    await _firestoreService.updateFavoriteStatus(widget.photo.year.toString(), widget.photo.id, _isFavorite);
+  }
+
+  Future<void> _downloadAndShareImage(String imageUrl) async {
+    try {
+      final directory = await getTemporaryDirectory();
+      final filePath = '${directory.path}/photo.jpg';
+
+      final response = await Dio().download(imageUrl, filePath);
+
+      if (response.statusCode == 200) {
+        XFile file = XFile(filePath);
+        Share.shareXFiles(
+          [file],
+          text: 'Check out this photo!',
+        );
+      } else {
+        throw Exception('Failed to download image');
+      }
+    } catch (e) {
+      print('Error downloading or sharing image: $e');
+    }
+  }
+
+  void _toggleEditMode() async {
+    setState(() {
+      _isEditing = !_isEditing;
+      if (!_isEditing) {
+        _description = _descriptionController.text;
+        // Save the updated description to Firestore
+         _firestoreService.updatePhotoDescription(
+          widget.photo.year.toString(),
+          widget.photo.id,
+          _description,
+        );
+      }
     });
   }
 
- Future<void> _downloadAndShareImage(String imageUrl) async {
-  try {
-    // Get the temporary directory to store the image
-    final directory = await getTemporaryDirectory();
-    final filePath = '${directory.path}/photo.jpg';
-
-    // Download the image using Dio
-    final response = await Dio().download(imageUrl, filePath);
-
-    if (response.statusCode == 200) {
-      // Create an XFile for the image
-      XFile file = XFile(filePath);
-
-      // Share the image using shareXFiles
-      Share.shareXFiles(
-        [file],
-        text: 'Check out this photo!',
-      );
-    } else {
-      throw Exception('Failed to download image');
-    }
-  } catch (e) {
-    print('Error downloading or sharing image: $e');
-  }
-}
-
-Future<void> _saveImageToGallery(String imageUrl) async {
-  try {
-    // Get the directory to store the image (for Android/iOS it will be in Downloads folder)
-    final directory = await getExternalStorageDirectory();
-    if (directory == null) throw Exception('Unable to get external storage directory.');
-
-    // Define a path to save the image
-    final filePath = '${directory.path}/${widget.photo.id}.jpg';
-
-    // Download the image using Dio
-    final response = await Dio().download(imageUrl, filePath);
-
-    if (response.statusCode == 200) {
-      // Show a success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Image saved successfully!')),
-      );
-    } else {
-      throw Exception('Failed to download image');
-    }
-  } catch (e) {
-    // Show an error message in case of failure
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error saving image: $e')),
-    );
-  }
-}
-
-
   @override
   Widget build(BuildContext context) {
+    final DateFormat dateFormat = DateFormat('MMMM dd, yyyy');
+    final String formattedDate = dateFormat.format(widget.photo.timestamp);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Full Image'),
+        title: Text(formattedDate),
       ),
-      body: Stack(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(
-            child: CachedNetworkImage(
-              imageUrl: widget.photo.url,
-              fit: BoxFit.contain,
-              placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _isEditing
+                      ? TextField(
+                          controller: _descriptionController,
+                          decoration: const InputDecoration(
+                            labelText: 'Description',
+                            border: OutlineInputBorder(),
+                          ),
+                        )
+                      : Text(
+                          _description.isEmpty ? 'No description available' : _description,
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                ),
+                IconButton(
+                  icon: Icon(_isEditing ? Icons.check : Icons.edit),
+                  onPressed: _toggleEditMode,
+                ),
+              ],
             ),
           ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: BottomAppBar(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    IconButton(
-                     
-                      icon: const Icon(Icons.save_alt),
-                       onPressed: (){
-                        _saveImageToGallery(widget.photo.url);
-                       }, 
-                    ),
-                   IconButton(
-                      icon: Icon(
-                        _isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: _isFavorite ? Colors.red : null,
-                      ),
-                      onPressed: _toggleFavoriteStatus,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.share),
-                      onPressed: () {
-                        // Share the image directly
-                        _downloadAndShareImage(widget.photo.url);
-                      },
-                    ),
-                 IconButton(
-  icon: const Icon(Icons.delete),
-  onPressed: () async {
-    // Show confirmation dialog
-    bool confirmDelete = await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Photo'),
-        content: const Text('Are you sure you want to delete this photo?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+          Expanded(
+            child: Center(
+              child: CachedNetworkImage(
+                imageUrl: widget.photo.url,
+                fit: BoxFit.contain,
+                placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                errorWidget: (context, url, error) => const Icon(Icons.error),
+              ),
+            ),
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
+          BottomAppBar(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.save_alt),
+                    onPressed: () {
+                      // _saveImageToGallery(widget.photo.url);
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      _isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: _isFavorite ? Colors.red : null,
+                    ),
+                    onPressed: _toggleFavoriteStatus,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.share),
+                    onPressed: () {
+                      _downloadAndShareImage(widget.photo.url);
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () async {
+                      bool confirmDelete = await showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Delete Photo'),
+                          content: const Text('Are you sure you want to delete this photo?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: const Text('Delete'),
+                            ),
+                          ],
+                        ),
+                      );
 
-    if (confirmDelete == true) {
-      final FirestoreService _firestoreService = FirestoreService();
+                      if (confirmDelete == true) {
+                        try {
+                          await _firestoreService.deletePhoto(widget.photo.year.toString(), widget.photo.id, widget.photo.url);
 
-      try {
-        // Attempt to delete the photo
-        await _firestoreService.deletePhoto(widget.photo.year.toString(), widget.photo.id, widget.photo.url);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Photo deleted successfully!')),
+                          );
 
-        // If the deletion succeeds, show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Photo deleted successfully!')),
-        );
-        
-        // Return to the previous screen
-        Navigator.pop(context); // Go back to the timeline
-      } catch (e) {
-        // If there is an error, show an error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete photo: $e')),
-        );
-      }
-    }
-  },
-),
-
-                  ],
-                ),
+                          Navigator.pop(context);
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to delete photo: $e')),
+                          );
+                        }
+                      }
+                    },
+                  ),
+                ],
               ),
             ),
           ),
