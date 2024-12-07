@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:get_it/get_it.dart';
+
 class TimelineView extends StatefulWidget {
   const TimelineView({Key? key}) : super(key: key);
 
@@ -36,45 +36,76 @@ class _TimelineViewState extends State<TimelineView> {
         backgroundColor: const Color(0xFF3E4A59), // Cool dark color
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_a_photo),
+            icon: const Icon(Icons.add_a_photo , color: Colors.white,),
             onPressed: () {
               Navigator.pushNamed(context, '/upload');
             },
           ),
-          FutureBuilder<List<String>>(
-            future: _years,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              }
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('No years found.'));
-              }
-
-              final years = snapshot.data!;
-              years.sort((a, b) => int.parse(b).compareTo(int.parse(a)));
-
-              return DropdownButton<String>(
-                value: _selectedYear,
-                hint: const Text('Select Year'),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedYear = newValue;
-                  });
-                },
-                items: years.map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-              );
-            },
-          ),
         ],
+      ),
+      drawer: FutureBuilder<List<String>>(
+        future: _years,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No years found.'));
+          }
+
+          final years = snapshot.data!;
+          years.sort((a, b) => int.parse(b).compareTo(int.parse(a)));
+
+          return Drawer(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF3E4A59),
+                  ),
+                  child: const Text(
+                    'Select Year',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                    ),
+                  ),
+                ),
+                ExpansionTile(
+                  title: const Text('Show Years'),
+                  leading: const Icon(Icons.calendar_today),
+                  children: years.map((year) {
+                    return ListTile(
+                      title: Text(year),
+                      onTap: () {
+                        setState(() {
+                          _selectedYear = year;
+                        });
+                        Navigator.pop(context); // Close the drawer when a year is selected
+                      },
+                    );
+                  }).toList(),
+                ),
+
+               ListTile(
+                  leading: const Icon(Icons.favorite),
+                  title: const Text('Favorites'),
+                  onTap: () {
+                    // Close the drawer and navigate to the favorites page (assuming you have a favorites route)
+                    Navigator.pop(context); 
+                    Navigator.pushNamed(context, '/favorites');
+               }),
+
+             
+              ],
+              
+            ),
+          );
+        },
       ),
       body: _selectedYear != null
           ? StreamBuilder<List<Photo>>(
@@ -117,7 +148,7 @@ class _TimelineViewState extends State<TimelineView> {
                             shrinkWrap: true,
                             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              crossAxisSpacing:12.0, // Reduced spacing
+                              crossAxisSpacing: 12.0, // Reduced spacing
                               mainAxisSpacing: 12.0, // Reduced spacing
                               childAspectRatio: 0.47, // More square-like photos
                             ),
@@ -157,7 +188,6 @@ class _TimelineViewState extends State<TimelineView> {
     );
   }
 }
-
 
 class FullImageScreen extends StatefulWidget {
   final Photo photo;
@@ -343,6 +373,69 @@ class _FullImageScreenState extends State<FullImageScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class FavoriteScreen extends StatefulWidget {
+  const FavoriteScreen({super.key});
+
+  @override
+  State<FavoriteScreen> createState() => _FavoriteScreen();
+}
+
+class _FavoriteScreen extends State<FavoriteScreen> {
+
+
+  final FirestoreService _firestoreService = getIt<FirestoreService>();
+
+  @override
+  Widget build(BuildContext context) {
+ return Scaffold(
+      appBar: AppBar(
+        title: const Text('Favorites'),
+      ),
+      body: FutureBuilder<List<Photo>>(
+        future: _firestoreService.fetchAllFavoritePhotos(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return const Center(child: Text('Error fetching favorite photos.'));
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No favorite photos found.'));
+          }
+
+          final favoritePhotos = snapshot.data!;
+
+          return GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12.0,
+              mainAxisSpacing: 12.0,
+              childAspectRatio: 0.7,
+            ),
+            itemCount: favoritePhotos.length,
+            itemBuilder: (context, index) {
+              final photo = favoritePhotos[index];
+              return GestureDetector(
+                onTap: () {
+                  // Handle image tap, for example, navigate to a full-screen view
+                },
+                child: CachedNetworkImage(
+                  imageUrl: photo.url,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) =>
+                      const Center(child: CircularProgressIndicator()),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

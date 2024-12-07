@@ -33,6 +33,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/timeline': (context) => TimelineView(),  // The timeline view screen
         '/upload': (context) => UploadImageScreen(),  // The upload image screen
+        '/favorites': (context) => FavoriteScreen(),
       },
     );
   }

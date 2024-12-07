@@ -95,4 +95,49 @@ class FirestoreService {
     }
 
   }
+
+Future<List<Photo>> fetchAllFavoritePhotos() async {
+  try {
+    // Log the start of the process
+    _logger.i('Starting to fetch all favorite photos from Firestore');
+
+    // Log the execution of the query
+    _logger.d('Executing query to fetch photos where "favorite" is true...');
+    QuerySnapshot snapshot = await _db
+        .collectionGroup('photos')
+        .where('favorite', isEqualTo: true)
+        .get();
+
+    // Log how many documents were returned by the query
+    _logger.i('Query successful, found ${snapshot.docs.length} favorite photos');
+
+    // Log if no photos were found
+    if (snapshot.docs.isEmpty) {
+      _logger.w('No favorite photos found.');
+    }
+
+    // Mapping Firestore documents to the Photo model with logging for each document
+    List<Photo> favoritePhotos = snapshot.docs.map((doc) {
+      // Log the document ID being mapped
+      _logger.d('Mapping photo with document ID: ${doc.id}');
+      
+      // Log the fields of the document for debugging
+      _logger.v('Document fields: ${doc.data()}');
+
+      // Map Firestore document to Photo model
+      return Photo.fromFirestore(doc.data() as Map<String, dynamic>, doc.id);
+    }).toList();
+
+    // Log the number of successfully mapped photos
+    _logger.i('Successfully mapped ${favoritePhotos.length} photos to the model');
+
+    return favoritePhotos;
+  } catch (e, stacktrace) {
+    // Log the error and stack trace for debugging purposes
+    _logger.e('Error fetching favorite photos: $e'  );
+    return [];
+  }
+}
+
+
 }
