@@ -1,19 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:gallery_app/views/timeline_view.dart';  
-import 'package:gallery_app/views/upload_image_screen.dart';  
 import 'package:get_it/get_it.dart';
-import 'package:gallery_app/services/firestore_service.dart';
+import 'services/firestore_service.dart';
+import 'services/notification_service.dart';
+import 'services/background_task_handler.dart'; // Import your background task handler
+import 'views/timeline_view.dart';
+import 'views/upload_image_screen.dart';
+import 'package:gallery_app/views/homeScreen.dart';
 
 final getIt = GetIt.instance;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   getIt.registerLazySingleton(() => FirestoreService());
 
-  runApp(MyApp());
+  // Initialize notifications and background tasks
+  await initializeNotifications();
+  setupBackgroundTask();
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -26,14 +34,13 @@ class MyApp extends StatelessWidget {
       title: 'Photo Gallery App',
       theme: ThemeData(
         primarySwatch: Colors.purple,
-       // scaffoldBackgroundColor: const Color.fromARGB(239, 231, 135, 251),
       ),
-      // Define routes for easy navigation
-      initialRoute: '/timeline',  // This is the initial screen that will be shown
+      initialRoute: '/home',
       routes: {
-        '/timeline': (context) => TimelineView(),  // The timeline view screen
-        '/upload': (context) => UploadImageScreen(),  // The upload image screen
+        '/home': (context) => Homescreen(),
+        '/upload': (context) => UploadImageScreen(),
         '/favorites': (context) => FavoriteScreen(),
+       
       },
     );
   }
