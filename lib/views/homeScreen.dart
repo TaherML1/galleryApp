@@ -26,7 +26,10 @@ _years = _firestoreService.fetchYears();
 Widget build(BuildContext context) {
 return Scaffold(
 appBar: AppBar(
-title: const Text('New Photo Gallery'),
+title: const Text('Photo Gallery' , 
+style: TextStyle(color: Colors.white),
+
+),
 backgroundColor: const Color(0xFF3E4A59), // Cool dark color
 actions: [
 IconButton(
@@ -38,11 +41,14 @@ Navigator.pushNamed(context, '/upload');
 IconButton(
 icon: const Icon(Icons.home, color: Colors.white),
 onPressed: () {
-
-
 Navigator.pushNamed(context, '/home');
         },
-      )
+      ),
+       IconButton(
+       onPressed: () {
+Navigator.pushNamed(context, '/random');
+},
+        icon: const Icon(Icons.shuffle, color: Colors.white))
     ],
   ),
    drawer: FutureBuilder<List<String>>(

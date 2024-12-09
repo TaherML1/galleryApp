@@ -40,6 +40,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => Homescreen(),
         '/upload': (context) => UploadImageScreen(),
         '/favorites': (context) => FavoriteScreen(),
+        '/random': (context) => randomPictureWidget(),
        
       },
     );

@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert'; 
 
 
 class FullImageScreen extends StatefulWidget {
@@ -274,4 +275,98 @@ class _FavoriteScreen extends State<FavoriteScreen> {
 }
 
 
+class randomPictureWidget extends StatefulWidget {
+  const randomPictureWidget({super.key});
 
+  @override
+  State<randomPictureWidget> createState() => _RandomPictureWidgetState();
+}
+
+class _RandomPictureWidgetState extends State<randomPictureWidget> {
+  final FirestoreService _firestoreService = getIt<FirestoreService>();
+  Future<Photo?>? _randomPhotoFuture;
+  Photo? _currentPhoto;
+  DateTime? _lastFetchedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStoredPhoto();
+  }
+
+  // Load stored photo from SharedPreferences if available
+  Future<void> _loadStoredPhoto() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? storedPhoto = prefs.getString('randomPhoto');
+    String? storedDate = prefs.getString('fetchedDate');
+
+    if (storedPhoto != null && storedDate != null) {
+      DateTime lastDate = DateTime.parse(storedDate);
+      DateTime now = DateTime.now();
+
+      if (now.difference(lastDate).inDays == 0) {
+        // Use the stored photo if it's the same day
+        setState(() {
+          _currentPhoto = Photo.fromJson(jsonDecode(storedPhoto));
+        });
+      } else {
+        // If the day has changed, fetch a new photo
+        _fetchRandomPhoto();
+      }
+    } else {
+      // No photo stored, fetch a new one
+      _fetchRandomPhoto();
+    }
+  }
+
+  // Fetch a random photo and store it
+  void _fetchRandomPhoto() async {
+    Photo? fetchedPhoto = await _firestoreService.fetchRandomPhotoFromAllYears();
+    if (fetchedPhoto != null) {
+      setState(() {
+        _currentPhoto = fetchedPhoto;
+      });
+
+      // Store the photo and the current date in SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('randomPhoto', jsonEncode(fetchedPhoto.toJson()));
+      await prefs.setString('fetchedDate', DateTime.now().toIso8601String());
+    }
+  }
+
+  @override
+ Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text('Random Photo'),
+    ),
+    body: _currentPhoto != null
+        ? Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('❤️ Todays photo is  ❤️',  style: const TextStyle(fontSize: 20 ),),
+
+                SizedBox(height: 20,),
+                Text(
+                  _currentPhoto!.description, 
+                  style: const TextStyle(fontSize: 18),  // Adjust text styling as needed
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: SizedBox(
+                    height: 600,  // Set the desired height
+                    width: 400,   // Set the desired width
+                    child: Image.network(
+                      _currentPhoto!.url,
+                      fit: BoxFit.cover,  // Adjust how the image should fit the box (e.g., cover, contain, fill)
+                    ),
+                  ),
+                )  // Display the stored or fetched photo
+              ],
+            ),
+          )
+        : const Center(child: CircularProgressIndicator()),  // Show loading while fetching
+  );
+}
+}
