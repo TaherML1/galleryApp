@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
-import 'package:logger/logger.dart';
+//import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert'; 
 
@@ -25,7 +25,7 @@ class _FullImageScreenState extends State<FullImageScreen> {
   late bool _isFavorite;
   late String _description = '';
   bool _isEditing = false;
-  final Logger _logger = Logger();
+  
   final TextEditingController _descriptionController = TextEditingController();
   final FirestoreService _firestoreService = getIt<FirestoreService>();
 
@@ -33,7 +33,7 @@ class _FullImageScreenState extends State<FullImageScreen> {
   void initState() {
     super.initState();
     _isFavorite = widget.photo.favorite;
-    _description = widget.photo.description ?? '';
+    _description = widget.photo.description ;
     _descriptionController.text = _description;
   }
 
@@ -284,9 +284,9 @@ class randomPictureWidget extends StatefulWidget {
 
 class _RandomPictureWidgetState extends State<randomPictureWidget> {
   final FirestoreService _firestoreService = getIt<FirestoreService>();
-  Future<Photo?>? _randomPhotoFuture;
+
   Photo? _currentPhoto;
-  DateTime? _lastFetchedDate;
+
 
   @override
   void initState() {

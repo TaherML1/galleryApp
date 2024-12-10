@@ -132,7 +132,7 @@ Future<List<Photo>> fetchAllFavoritePhotos() async {
     _logger.i('Successfully mapped ${favoritePhotos.length} photos to the model');
 
     return favoritePhotos;
-  } catch (e, stacktrace) {
+  } catch (e) {
     // Log the error and stack trace for debugging purposes
     _logger.e('Error fetching favorite photos: $e'  );
     return [];
@@ -164,7 +164,7 @@ Future<List<Photo>> fetchAllPhotos() async {
     _logger.i('Successfully mapped ${allPhotos.length} photos to the model');
 
     return allPhotos;
-  } catch (e, stacktrace) {
+  } catch (e) {
     _logger.e('Error fetching photos: $e');
     return [];
   }
