@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Add this import
 import 'services/firestore_service.dart';
 import 'views/timeline_view.dart';
 import 'views/upload_image_screen.dart';
 import 'package:gallery_app/views/homeScreen.dart';
-import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:gallery_app/services/notifications_service.dart';
+import 'package:gallery_app/views/IntroView.dart';
 
 final getIt = GetIt.instance;
 
@@ -16,28 +18,20 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   getIt.registerLazySingleton(() => FirestoreService());
 
-  await AwesomeNotifications().initialize(
-    null, // Icon for notification
-    [
-      NotificationChannel(
-        channelKey: 'basic_channel',
-        channelName: 'Basic notifications',
-        channelDescription: 'Notification channel for basic tests',
-        defaultColor: Color(0xFF9D50DD),
-        ledColor: Colors.white,
-      )
-    ],
-    debug: true, // Set to false in production
-  );
+  NotificationsService notificationsService = NotificationsService();
+  await notificationsService.initializeNotifications();
 
-  // Request notification permissions
-  await AwesomeNotifications().requestPermissionToSendNotifications();
+  // Check if the intro has been shown before
+  final prefs = await SharedPreferences.getInstance();
+  bool isFirstTime = prefs.getBool('first_time') ?? true;
 
-  runApp(const MyApp());
+  runApp(MyApp(isFirstTime: isFirstTime));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isFirstTime;
+
+  const MyApp({super.key, required this.isFirstTime});
 
   @override
   Widget build(BuildContext context) {
@@ -47,26 +41,15 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.purple,
       ),
-      initialRoute: '/home',
+      initialRoute: isFirstTime ? '/intro' : '/home',
       routes: {
         '/home': (context) => Homescreen(),
         '/upload': (context) => UploadImageScreen(),
         '/favorites': (context) => FavoriteScreen(),
         '/random': (context) => randomPictureWidget(),
+        '/intro': (context) => IntroInfoWidget(),
+        '/info' : (context) =>InfoPageWidget()
       },
     );
   }
-}
-
-// Function to send a notification
-Future<void> sendNotification() async {
-  await AwesomeNotifications().createNotification(
-    content: NotificationContent(
-      id: 10,
-      channelKey: 'basic_channel',
-      title: 'Test Notification',
-      body: 'This is a test notification',
-      notificationLayout: NotificationLayout.Default,
-    ),
-  );
 }

@@ -204,4 +204,15 @@ Future<Photo?> fetchRandomPhotoFromAllYears() async {
   }
 
 }
+
+ Future<Photo> fetchPhotoById(String photoId) async {
+    DocumentSnapshot doc = await _db.collection('photos').doc(photoId).get();
+    if (doc.exists) {
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      return Photo.fromFirestore(data, photoId);
+    } else {
+      throw Exception('Photo not found');
+    }
+  }
+
 }

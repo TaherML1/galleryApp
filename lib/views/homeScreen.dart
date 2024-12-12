@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:gallery_app/services/firestore_service.dart';
 import 'package:gallery_app/main.dart';
+import 'package:gallery_app/services/notifications_service.dart';
 import 'package:gallery_app/views/timeline_view.dart';
 import 'package:gallery_app/models/photo.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Homescreen extends StatefulWidget {
   const Homescreen({super.key}); // Corrected class name to match Dart naming conventions
@@ -15,24 +16,26 @@ class Homescreen extends StatefulWidget {
 
 class _HomescreenState extends State<Homescreen> {
   final FirestoreService _firestoreService = getIt<FirestoreService>();
+  NotificationsService   notificationsService = NotificationsService();
   late Future<List<String>> _years;
   String? _selectedYear;
+    // ignore: unused_field
+    List<String> _favoritePhotos = [];
+
 
   @override
   void initState() {
     super.initState();
     _years = _firestoreService.fetchYears();
-  
+   _loadFavorites();
   }
 
-  // Function to trigger the notification
- Future<void> _sendNotification() async {
-    try {
-      await sendNotification();  // Call the notification function
-      print("Notification sent successfully!");
-    } catch (e) {
-      print("Error sending notification: $e");
-    }
+
+  Future<void> _loadFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _favoritePhotos = prefs.getStringList('favorites') ?? [];
+    });
   }
 
   @override
@@ -61,73 +64,89 @@ class _HomescreenState extends State<Homescreen> {
             icon: const Icon(Icons.shuffle, color: Colors.white),
           ),
           IconButton(onPressed: (){
-            _sendNotification();
+            notificationsService.sendNotification();
 
           }, 
-          icon: Icon(Icons.notification_add , color: Colors.white,))
+          
+          icon: Icon(Icons.notification_add , color: Colors.white,)),
         
         ],
       ),
       drawer: FutureBuilder<List<String>>(
-        future: _years,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No years found.'));
-          }
+  future: _years,
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (snapshot.hasError) {
+      return Center(child: Text('Error: ${snapshot.error}'));
+    }
+    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+      return const Center(child: Text('No years found.'));
+    }
 
-          final years = snapshot.data!;
-          years.sort((a, b) => int.parse(b).compareTo(int.parse(a)));
+    final years = snapshot.data!;
+    years.sort((a, b) => int.parse(b).compareTo(int.parse(a)));
 
-          return Drawer(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF3E4A59),
-                  ),
-                  child: const Text(
-                    'Select Year',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                    ),
-                  ),
-                ),
-                ExpansionTile(
-                  title: const Text('Show Years'),
-                  leading: const Icon(Icons.calendar_today),
-                  children: years.map((year) {
-                    return ListTile(
-                      title: Text(year),
-                      onTap: () {
-                        setState(() {
-                          _selectedYear = year;
-                        });
-                        Navigator.pop(context); // Close the drawer when a year is selected
-                      },
-                    );
-                  }).toList(),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.favorite),
-                  title: const Text('Favorites'),
-                  onTap: () {
-                    Navigator.pop(context); 
-                    Navigator.pushNamed(context, '/favorites');
-                  },
-                ),
-              ],
+    return Drawer(
+      child: Column(
+        children: [
+          // Drawer header
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: const Color(0xFF3E4A59),
             ),
-          );
-        },
+            child: const Text(
+              '      Select Year                             ',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+              ),
+            ),
+          ),
+          // Years ExpansionTile
+          ExpansionTile(
+            title: const Text('Show Years'),
+            leading: const Icon(Icons.calendar_today),
+            children: years.map((year) {
+              return ListTile(
+                title: Text(year),
+                onTap: () {
+                  setState(() {
+                    _selectedYear = year;
+                  });
+                  Navigator.pop(context); // Close the drawer when a year is selected
+                },
+              );
+            }).toList(),
+          ),
+          // Favorites ListTile
+          ListTile(
+            leading: const Icon(Icons.favorite),
+            title: const Text('Favorites'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/favorites');
+            },
+          ),
+          // Expanded to push the Info button to the bottom
+          Expanded(child: Container()),
+
+          // Info ListTile at the bottom
+          ListTile(
+            leading: const Icon(Icons.info),
+            title: const Text('Info'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/info');
+            },
+          ),
+        ],
       ),
+    );
+  },
+),
+
       body: _selectedYear != null
           ? StreamBuilder<List<Photo>>(
               stream: _firestoreService.fetchPhotosStream(_selectedYear!),

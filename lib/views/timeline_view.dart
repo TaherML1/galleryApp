@@ -354,15 +354,32 @@ class _RandomPictureWidgetState extends State<randomPictureWidget> {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(12.0),
-                  child: SizedBox(
+                  child : GestureDetector(
+                    onTap: (){
+                      if(_currentPhoto != null){
+                        Navigator.push(context, 
+                        MaterialPageRoute(builder: (context) => FullImageScreen(photo: _currentPhoto!)));
+
+                      }
+                     
+
+                    },
+                     child: SizedBox(
                     height: 600,  // Set the desired height
                     width: 400,   // Set the desired width
                     child: Image.network(
                       _currentPhoto!.url,
-                      fit: BoxFit.cover,  // Adjust how the image should fit the box (e.g., cover, contain, fill)
+                      fit: BoxFit.cover,
+                        // Adjust how the image should fit the box (e.g., cover, contain, fill)
                     ),
+                    
+                    
                   ),
-                )  // Display the stored or fetched photo
+                  ),
+                 
+                  
+                )  
+                // Display the stored or fetched photo
               ],
             ),
           )

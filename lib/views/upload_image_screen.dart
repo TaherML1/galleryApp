@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:gallery_app/services/firestore_service.dart';
 import 'package:gallery_app/services/storage_service.dart';
-import 'package:gallery_app/services/image_picker_service.dart'; // Import the image picker service
+import 'package:gallery_app/services/image_picker_service.dart'; 
 
 class UploadImageScreen extends StatefulWidget {
   @override
@@ -15,6 +15,7 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
   final FirestoreService _firestoreService = FirestoreService();
   final ImagePickerService _imagePickerService = ImagePickerService(); // Instantiate the image picker service
   DateTime? _selectedDate;
+   // ignore: unused_field
    bool _isUploading = false;
 
   // Method to pick image from gallery
