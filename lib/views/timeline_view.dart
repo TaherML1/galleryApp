@@ -10,7 +10,10 @@ import 'package:dio/dio.dart';
 //import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert'; 
-
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
+import 'dart:typed_data';
 
 class FullImageScreen extends StatefulWidget {
   final Photo photo;
@@ -24,6 +27,7 @@ class FullImageScreen extends StatefulWidget {
 class _FullImageScreenState extends State<FullImageScreen> {
   late bool _isFavorite;
   late String _description = '';
+  bool _isDownloading = false;
   bool _isEditing = false;
   
   final TextEditingController _descriptionController = TextEditingController();
@@ -66,6 +70,10 @@ class _FullImageScreenState extends State<FullImageScreen> {
     }
   }
 
+ 
+
+
+
   void _toggleEditMode() async {
     setState(() {
       _isEditing = !_isEditing;
@@ -80,6 +88,139 @@ class _FullImageScreenState extends State<FullImageScreen> {
       }
     });
   }
+
+Future<void> _requestPermission() async {
+    PermissionStatus status = await Permission.photos.request();
+    if (status.isGranted) {
+      _downloadImage(widget.photo.url);
+    } else {
+      // Show a dialog or alert to the user about why the permission is needed
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Permission to access gallery is denied')));
+    }
+  }
+   Future<void> _downloadImage(String imageUrl) async {
+  setState(() {
+    _isDownloading = true;
+  });
+
+  try {
+    // Print log before starting the HTTP request
+    print('Starting image download from $imageUrl...');
+    
+    // Download the image from the provided URL
+    final response = await http.get(Uri.parse(imageUrl));
+    print('Response status: ${response.statusCode}');  // Log response status
+    
+    if (response.statusCode == 200) {
+      final Uint8List bytes = response.bodyBytes;
+      print('Image download successful, bytes length: ${bytes.length}');
+
+      // Save the image to the gallery
+      final result = await ImageGallerySaver.saveImage(bytes);
+      print('Image saving result: $result');
+      
+      if (result['isSuccess']) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Image saved to gallery!'),backgroundColor:Colors.green,));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to save image to gallery'), backgroundColor: Colors.red,));
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to download image, status code: ${response.statusCode}')));
+    }
+  } catch (e) {
+    print('Error occurred while downloading image: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error occurred while downloading image')));
+  } finally {
+    setState(() {
+      _isDownloading = false;
+    });
+  }
+}
+
+
+
+
+
+
+Future<void> _saveImageToGallery(String imageUrl) async {
+  try {
+    final directory = await getTemporaryDirectory();
+    final filePath = '${directory.path}/photo.jpg';
+
+    final response = await Dio().download(imageUrl, filePath);
+
+    if (response.statusCode == 200) {
+      // Handle permission for Android 11+ devices
+      if (await Permission.storage.isGranted) {
+        // Permission granted, proceed to save the image
+        final result = await ImageGallerySaver.saveFile(filePath);
+        if (result['isSuccess']) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Image saved to gallery!')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to save image to gallery.')),
+          );
+        }
+      } else if (await Permission.manageExternalStorage.isDenied) {
+        // If manageExternalStorage permission is denied, request it
+        final status = await Permission.manageExternalStorage.request();
+        if (status.isGranted) {
+          // If granted, save the image
+          final result = await ImageGallerySaver.saveFile(filePath);
+          if (result['isSuccess']) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Image saved to gallery!')),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Failed to save image to gallery.')),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Permission to manage storage is required.')),
+          );
+        }
+      } else {
+        // Request regular storage permission
+        final status = await Permission.storage.request();
+        if (status.isGranted) {
+          final result = await ImageGallerySaver.saveFile(filePath);
+          if (result['isSuccess']) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Image saved to gallery!')),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Failed to save image to gallery.')),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Permission denied to save image to gallery.')),
+          );
+        }
+      }
+    } else {
+      throw Exception('Failed to download image');
+    }
+  } catch (e) {
+    print('Error saving image to gallery: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Failed to save image to gallery.')),
+    );
+  }
+}
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +278,7 @@ class _FullImageScreenState extends State<FullImageScreen> {
                   IconButton(
                     icon: const Icon(Icons.save_alt),
                     onPressed: () {
-                      // _saveImageToGallery(widget.photo.url);
+                       _downloadImage(widget.photo.url);
                     },
                   ),
                   IconButton(

@@ -5,7 +5,7 @@ import 'package:gallery_app/main.dart';
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame, passing a value for isFirstTime.
-    await tester.pumpWidget(MyApp(isFirstTime: true)); // Or false depending on what you want to test
+await tester.pumpWidget(MyApp(isFirstTime: true)); // Or false depending on what you want to test
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);
