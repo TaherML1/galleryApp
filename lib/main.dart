@@ -10,6 +10,7 @@ import 'package:gallery_app/views/homeScreen.dart';
 import 'package:gallery_app/services/notifications_service.dart';
 import 'package:gallery_app/views/IntroView.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:gallery_app/views/NotificationScreen.dart';
 
 final getIt = GetIt.instance;
 
@@ -28,12 +29,14 @@ void main() async {
 
   // Request storage permission
   await requestStoragePermission();
+  
 
   // Check if the intro has been shown before
   final prefs = await SharedPreferences.getInstance();
   bool isFirstTime = prefs.getBool('first_time') ?? true;
 
   runApp(MyApp(isFirstTime: isFirstTime));
+  FirestoreService().checkForMemoryAndScheduleNotification();
 }
 
 Future<void> requestStoragePermission() async {
@@ -68,6 +71,7 @@ class MyApp extends StatelessWidget {
         '/random': (context) => randomPictureWidget(),
         '/intro': (context) => IntroInfoWidget(),
         '/info' : (context) => InfoPageWidget(),
+        '/notification' : (context) => NotificationScreen(),
       },
     );
   }

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:gallery_app/services/firestore_service.dart';
 import 'package:gallery_app/services/storage_service.dart';
 import 'package:gallery_app/services/image_picker_service.dart'; 
-
+import 'package:gallery_app/main.dart';
 class UploadImageScreen extends StatefulWidget {
   @override
   _UploadImageScreenState createState() => _UploadImageScreenState();
@@ -12,7 +12,7 @@ class UploadImageScreen extends StatefulWidget {
 class _UploadImageScreenState extends State<UploadImageScreen> {
   File? _image;
   final StorageService _storageService = StorageService();
-  final FirestoreService _firestoreService = FirestoreService();
+  final FirestoreService _firestoreService = getIt<FirestoreService>();
   final ImagePickerService _imagePickerService = ImagePickerService(); // Instantiate the image picker service
   DateTime? _selectedDate;
    // ignore: unused_field
@@ -164,7 +164,7 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
             // Display image or placeholder
             if (_image != null)
               Container(
-                height: 200,
+                height: 400,
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey),
                   borderRadius: BorderRadius.circular(10),
@@ -176,7 +176,7 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
               )
             else
               Container(
-                height: 200,
+                height: 400,
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey),
                   borderRadius: BorderRadius.circular(10),
@@ -188,7 +188,11 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
                   ),
                 ),
               ),
-            SizedBox(height: 20),
+            SizedBox(height: 30),
+            Divider(
+              color: Colors.grey,
+              thickness: 1,
+            ),
             ElevatedButton.icon(
               onPressed: _pickImage,
               icon: Icon(Icons.photo_library),

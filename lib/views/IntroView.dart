@@ -67,7 +67,7 @@ class _IntroInfoWidget extends State<IntroInfoWidget> {
                     children: [
                       _buildIntroPage(
                         'Doğum günün dolaysıyla bu uygulamayı sana hediye etmek istiyorum ablacım',
-                        const Color.fromARGB(255, 233, 65, 227)!,
+                        const Color.fromARGB(255, 233, 65, 227),
                       ),
                       _buildIntroPage(
                         'Uzun ve mutlu bir ömür diliyorum',
@@ -181,7 +181,7 @@ class _InfoPageWidgetState extends State<InfoPageWidget> {
                 child: PageView(
                   controller: _pageController, // Assign the PageController
                   children: [
-                    _buildIntroPage('Doğum günün dolayıla bu uygulamayı sana hediye etmek istiyorum ablacım', const Color.fromARGB(255, 233, 65, 227)!),
+                    _buildIntroPage('Doğum günün dolayıla bu uygulamayı sana hediye etmek istiyorum ablacım', const Color.fromARGB(255, 233, 65, 227)),
                     _buildIntroPage('Uzun ve mutlu bir ömür diliyorum', Colors.amber[500]!),
                     _buildIntroPage('Seni çok seviyorum ❤️', Colors.purpleAccent),
                   ],

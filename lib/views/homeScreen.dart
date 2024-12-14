@@ -64,7 +64,7 @@ class _HomescreenState extends State<Homescreen> {
             icon: const Icon(Icons.shuffle, color: Colors.white),
           ),
           IconButton(onPressed: (){
-            notificationsService.sendNotification();
+            Navigator.pushNamed(context, '/notification');
 
           }, 
           

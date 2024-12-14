@@ -1,13 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import '../../models/photo.dart';
 import 'dart:math';
+import 'package:gallery_app/views/NotificationScreen.dart';
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final Logger _logger = Logger();
 
+NotificationScreen notificationScreen = new NotificationScreen();
   Future<List<String>> fetchYears() async {
     try {
       QuerySnapshot snapshot = await _db.collection('photos').get();
@@ -215,4 +218,66 @@ Future<Photo?> fetchRandomPhotoFromAllYears() async {
     }
   }
 
+
+void checkForMemoryAndScheduleNotification() async {
+  // Get today's date (month and day)
+  DateTime today = DateTime.now();
+  String todayMonthDay = DateFormat('MM-dd').format(today);
+  
+  // Log the current date being checked
+  _logger.i('Checking for photos from previous years taken on: $todayMonthDay');
+
+  try {
+    // Query Firestore for documents by year
+    QuerySnapshot snapshot = await _db.collection('photos').get();
+
+    // Log the number of years documents retrieved from Firestore
+    _logger.i('Found ${snapshot.docs.length} year documents in Firestore.');
+
+    // Iterate through each year document
+    List<Photo> sameDayPhotos = [];
+    for (var yearDoc in snapshot.docs) {
+      // Get the photos subcollection for each year
+      QuerySnapshot yearPhotosSnapshot = await _db
+          .collection('photos')
+          .doc(yearDoc.id)
+          .collection('photos')
+          .get();
+
+      _logger.i('Found ${yearPhotosSnapshot.docs.length} photos in year ${yearDoc.id}.');
+
+      // Iterate through the photos in each year
+      for (var photoDoc in yearPhotosSnapshot.docs) {
+        Photo photo = Photo.fromFirestore(photoDoc.data() as Map<String, dynamic>, photoDoc.id);
+        String photoMonthDay = DateFormat('MM-dd').format(photo.timestamp);
+
+        // Log the photo's date and comparison with today's date
+        _logger.d('Checking photo taken on: $photoMonthDay');
+
+        // Check if the photo was taken on the same day (regardless of year)
+        if (photoMonthDay == todayMonthDay && photo.timestamp.year < today.year) {
+          sameDayPhotos.add(photo);
+          _logger.i('Found a matching photo from year ${photo.timestamp.year} for today.');
+        }
+      }
+    }
+
+    // If we found any photos from the same day in previous years, schedule a notification
+    if (sameDayPhotos.isNotEmpty) {
+      // Choose the first photo (or you could let the user choose from the list)
+      Photo memoryPhoto = sameDayPhotos.first;
+      
+      // Log the memory photo to be used for the notification
+      _logger.i('Scheduling memory notification for photo taken on ${memoryPhoto.timestamp.year}.');
+      
+      // Schedule a notification for this memory
+      notificationScreen.scheduleMemoryNotification(memoryPhoto);
+    } else {
+      _logger.w("No memory found for today from previous years.");
+    }
+  } catch (e) {
+    // Log any error that occurs during the process
+    _logger.e('Error checking for memory: $e');
+  }
+}
 }
