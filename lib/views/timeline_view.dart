@@ -142,86 +142,6 @@ Future<void> _requestPermission() async {
   }
 }
 
-
-
-
-
-
-Future<void> _saveImageToGallery(String imageUrl) async {
-  try {
-    final directory = await getTemporaryDirectory();
-    final filePath = '${directory.path}/photo.jpg';
-
-    final response = await Dio().download(imageUrl, filePath);
-
-    if (response.statusCode == 200) {
-      // Handle permission for Android 11+ devices
-      if (await Permission.storage.isGranted) {
-        // Permission granted, proceed to save the image
-        final result = await ImageGallerySaver.saveFile(filePath);
-        if (result['isSuccess']) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Image saved to gallery!')),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to save image to gallery.')),
-          );
-        }
-      } else if (await Permission.manageExternalStorage.isDenied) {
-        // If manageExternalStorage permission is denied, request it
-        final status = await Permission.manageExternalStorage.request();
-        if (status.isGranted) {
-          // If granted, save the image
-          final result = await ImageGallerySaver.saveFile(filePath);
-          if (result['isSuccess']) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Image saved to gallery!')),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Failed to save image to gallery.')),
-            );
-          }
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Permission to manage storage is required.')),
-          );
-        }
-      } else {
-        // Request regular storage permission
-        final status = await Permission.storage.request();
-        if (status.isGranted) {
-          final result = await ImageGallerySaver.saveFile(filePath);
-          if (result['isSuccess']) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Image saved to gallery!')),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Failed to save image to gallery.')),
-            );
-          }
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Permission denied to save image to gallery.')),
-          );
-        }
-      }
-    } else {
-      throw Exception('Failed to download image');
-    }
-  } catch (e) {
-    print('Error saving image to gallery: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Failed to save image to gallery.')),
-    );
-  }
-}
-
-
-
-
   @override
   Widget build(BuildContext context) {
     final DateFormat dateFormat = DateFormat('MMMM dd, yyyy');
@@ -229,114 +149,135 @@ Future<void> _saveImageToGallery(String imageUrl) async {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(formattedDate),
+        title: Text(formattedDate , style: TextStyle(color: Colors.white),),
+        backgroundColor: Color(0xFF9c51b6),
+         iconTheme: IconThemeData(
+    color: Colors.white,  // Set the color of the back arrow here
+  ),
+        
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _isEditing
-                      ? TextField(
-                          controller: _descriptionController,
-                          decoration: const InputDecoration(
-                            labelText: 'Description',
-                            border: OutlineInputBorder(),
-                          ),
-                        )
-                      : Text(
-                          _description.isEmpty ? 'No description available' : _description,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                ),
-                IconButton(
-                  icon: Icon(_isEditing ? Icons.check : Icons.edit),
-                  onPressed: _toggleEditMode,
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Center(
-              child: CachedNetworkImage(
-                imageUrl: widget.photo.url,
-                fit: BoxFit.contain,
-                placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
-              ),
-            ),
-          ),
-          BottomAppBar(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.save_alt),
-                    onPressed: () {
-                       _downloadImage(widget.photo.url);
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      _isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: _isFavorite ? Colors.red : null,
+      body: Container(
+        color: Color(0xffD4BEE4),
+        child: Column(
+          
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Container(
+               
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _isEditing
+                          ? TextField(
+                            
+                              controller: _descriptionController,
+                              decoration: const InputDecoration(
+                                labelText: 'Description',
+                                border: OutlineInputBorder(),
+                              ),
+                            )
+                          : Text(
+                              _description.isEmpty ? 'No description available' : _description,
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold , color: Colors.black),
+                            ),
                     ),
-                    onPressed: _toggleFavoriteStatus,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.share),
-                    onPressed: () {
-                      _downloadAndShareImage(widget.photo.url);
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () async {
-                      bool confirmDelete = await showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Delete Photo'),
-                          content: const Text('Are you sure you want to delete this photo?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: const Text('Delete'),
-                            ),
-                          ],
-                        ),
-                      );
-
-                      if (confirmDelete == true) {
-                        try {
-                          await _firestoreService.deletePhoto(widget.photo.year.toString(), widget.photo.id, widget.photo.url);
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Photo deleted successfully!')),
-                          );
-
-                          Navigator.pop(context);
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Failed to delete photo: $e')),
-                          );
-                        }
-                      }
-                    },
-                  ),
-                ],
+                    IconButton(
+                      icon: Icon(_isEditing ? Icons.check : Icons.edit ,size: 30, color: Color(0xFF9c51b6),),
+                      onPressed: _toggleEditMode,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+            Expanded(
+              child: Center(
+                child: CachedNetworkImage(
+                  imageUrl: widget.photo.url,
+                  fit: BoxFit.contain,
+                  placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                ),
+              ),
+            ),
+            Container(
+              child: BottomAppBar(
+                color: Color(0xFFF8F6F4),
+                
+                child: Container(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      
+                      children: [
+                        
+                        IconButton(
+                          icon: const Icon(Icons.save_alt, color: Color(0xFF9c51b6),),
+                          onPressed: () {
+                             _downloadImage(widget.photo.url);
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            _isFavorite ? Icons.favorite : Icons.favorite_border ,
+                            color: _isFavorite ? Color(0xFF9c51b6) : Color(0xFF9c51b6),
+                          ),
+                          onPressed: _toggleFavoriteStatus,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.share , color: Color(0xFF9c51b6),),
+                          onPressed: () {
+                            _downloadAndShareImage(widget.photo.url);
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete , color: Color(0xFF9c51b6),),
+                          onPressed: () async {
+                            bool confirmDelete = await showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Delete Photo'),
+                                content: const Text('Are you sure you want to delete this photo?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(true),
+                                    child: const Text('Delete'),
+                                  ),
+                                ],
+                              ),
+                            );
+                  
+                            if (confirmDelete == true) {
+                              try {
+                                await _firestoreService.deletePhoto(widget.photo.year.toString(), widget.photo.id, widget.photo.url);
+                  
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Photo deleted successfully!')),
+                                );
+                  
+                                Navigator.pop(context);
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Failed to delete photo: $e')),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -519,7 +460,8 @@ class _RandomPictureWidgetState extends State<randomPictureWidget> {
                   ),
                  
                   
-                )  
+                ),
+                  
                 // Display the stored or fetched photo
               ],
             ),

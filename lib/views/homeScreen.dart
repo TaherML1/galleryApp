@@ -43,7 +43,10 @@ class _HomescreenState extends State<Homescreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Photo Gallery', style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xFF3E4A59), // Cool dark color
+        backgroundColor: const Color(0xFF9c51b6), 
+        iconTheme: const IconThemeData(
+    color: Colors.white, // Change the drawer icon color here
+  ),
         actions: [
           IconButton(
             icon: const Icon(Icons.add_a_photo, color: Colors.white),
@@ -72,7 +75,7 @@ class _HomescreenState extends State<Homescreen> {
         
         ],
       ),
-      drawer: FutureBuilder<List<String>>(
+     drawer: FutureBuilder<List<String>>(
   future: _years,
   builder: (context, snapshot) {
     if (snapshot.connectionState == ConnectionState.waiting) {
@@ -89,63 +92,76 @@ class _HomescreenState extends State<Homescreen> {
     years.sort((a, b) => int.parse(b).compareTo(int.parse(a)));
 
     return Drawer(
-      child: Column(
-        children: [
-          // Drawer header
-          DrawerHeader(
-            decoration: BoxDecoration(
-              color: const Color(0xFF3E4A59),
-            ),
-            child: const Text(
-              '      Select Year                             ',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
+      child: Container(  // Added a container to wrap the column
+        color: Color(0xFFD4BEE4),  // Change to any desired background color
+        child: Column(
+          children: [
+            // Drawer header
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: const Color(0xFF9c51b6),
+              ),
+              child: Center(
+                child: const Text(
+                  '          Select Year                             ',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
               ),
             ),
-          ),
-          // Years ExpansionTile
-          ExpansionTile(
-            title: const Text('Show Years'),
-            leading: const Icon(Icons.calendar_today),
-            children: years.map((year) {
-              return ListTile(
-                title: Text(year),
-                onTap: () {
-                  setState(() {
-                    _selectedYear = year;
-                  });
-                  Navigator.pop(context); // Close the drawer when a year is selected
-                },
-              );
-            }).toList(),
-          ),
-          // Favorites ListTile
-          ListTile(
-            leading: const Icon(Icons.favorite),
-            title: const Text('Favorites'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/favorites');
-            },
-          ),
-          // Expanded to push the Info button to the bottom
-          Expanded(child: Container()),
+            // Years ExpansionTile
+            ExpansionTile(
+              title: const Text('Show Years', style: TextStyle(
+                color: Color(0xFF9c51b6),  // Set text color as needed
+              )),
+              leading: const Icon(Icons.calendar_today, color: Color(0xFF9c51b6)),  // Set icon color as needed
+              iconColor: Color(0xFF9c51b6),
+                collapsedIconColor: Color(0xFF9c51b6),
+              children: years.map((year) {
+                return ListTile(
+                  title: Text(year , style: TextStyle(
+                    color: Color(0xFF9c51b6),
+                  ),),
+                  onTap: () {
+                    setState(() {
+                      _selectedYear = year;
+                    });
+                    Navigator.pop(context); // Close the drawer when a year is selected
+                  },
+                );
+              }).toList(),
+            ),
+            // Favorites ListTile
+            ListTile(
+              leading: const Icon(Icons.favorite, color: Color(0xFF9c51b6)),  // Set icon color as needed
+              title: const Text('Favorites', style: TextStyle(color: Color(0xFF9c51b6))),  // Set text color
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/favorites');
+              },
+            ),
+            // Expanded to push the Info button to the bottom
+            Expanded(child: Container()),
 
-          // Info ListTile at the bottom
-          ListTile(
-            leading: const Icon(Icons.info),
-            title: const Text('Info'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/info');
-            },
-          ),
-        ],
+            // Info ListTile at the bottom
+            ListTile(
+              leading: const Icon(Icons.info, color: Color(0xFF9c51b6)),  // Set icon color as needed
+              title: const Text('Info', style: TextStyle(color: Color(0xFF9c51b6))),  // Set text color
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/info');
+              },
+            ),
+          ],
+        ),
       ),
     );
   },
 ),
+
+backgroundColor: Color(0xffD4BEE4),
 
       body: _selectedYear != null
           ? StreamBuilder<List<Photo>>(
@@ -180,6 +196,7 @@ class _HomescreenState extends State<Homescreen> {
                         padding: const EdgeInsets.all(4.0), // Reduced padding
                         child: Card(
                           elevation: 5,
+                          color: Color(0xffD4BEE4),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
@@ -224,7 +241,7 @@ class _HomescreenState extends State<Homescreen> {
                 );
               },
             )
-          : const Center(child: Text('Select a year to view photos.')),
+          : const Center(child: Text('Select a year to view photos.',style: TextStyle(color: Color(0xFF9c51b6) , fontWeight: FontWeight.w500  ,fontSize: 20),  ) ),
     );
   }
 }

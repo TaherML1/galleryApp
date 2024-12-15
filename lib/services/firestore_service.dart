@@ -219,7 +219,7 @@ Future<Photo?> fetchRandomPhotoFromAllYears() async {
   }
 
 
-void checkForMemoryAndScheduleNotification() async {
+Future<void> checkForMemoryAndScheduleNotification() async {
   // Get today's date (month and day)
   DateTime today = DateTime.now();
   String todayMonthDay = DateFormat('MM-dd').format(today);

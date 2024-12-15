@@ -11,8 +11,10 @@ import 'package:gallery_app/services/notifications_service.dart';
 import 'package:gallery_app/views/IntroView.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:gallery_app/views/NotificationScreen.dart';
+import 'package:workmanager/workmanager.dart';  // Import workmanager
 
 final getIt = GetIt.instance;
+final FirestoreService _firestoreService = getIt<FirestoreService>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,14 +31,24 @@ void main() async {
 
   // Request storage permission
   await requestStoragePermission();
-  
 
   // Check if the intro has been shown before
   final prefs = await SharedPreferences.getInstance();
   bool isFirstTime = prefs.getBool('first_time') ?? true;
 
+  // Initialize WorkManager
+  Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+  callbackDispatcher();
+
+  // Register a one-off task to run every 1 minute
+  Workmanager().registerOneOffTask(
+    "10",
+    "checkMemories",
+    initialDelay: const Duration(minutes: 15), // Runs after 1 minute
+  );
+
   runApp(MyApp(isFirstTime: isFirstTime));
-  FirestoreService().checkForMemoryAndScheduleNotification();
+  //FirestoreService().checkForMemoryAndScheduleNotification();
 }
 
 Future<void> requestStoragePermission() async {
@@ -53,7 +65,7 @@ Future<void> requestStoragePermission() async {
 class MyApp extends StatelessWidget {
   final bool isFirstTime;
 
-  const MyApp({super.key, required this.isFirstTime});
+  MyApp({super.key, required this.isFirstTime});
 
   @override
   Widget build(BuildContext context) {
@@ -70,9 +82,25 @@ class MyApp extends StatelessWidget {
         '/favorites': (context) => FavoriteScreen(),
         '/random': (context) => randomPictureWidget(),
         '/intro': (context) => IntroInfoWidget(),
-        '/info' : (context) => InfoPageWidget(),
-        '/notification' : (context) => NotificationScreen(),
+        '/info': (context) => InfoPageWidget(),
+        '/notification': (context) => NotificationScreen(),
       },
     );
   }
+}
+
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    print('Task triggered: $task');
+
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+    FirestoreService firestoreService = FirestoreService();
+
+    // Call checkForMemoryAndScheduleNotification
+    await firestoreService.checkForMemoryAndScheduleNotification();
+
+    // Return true to indicate the task was successful
+    return Future.value(true);
+  });
 }
