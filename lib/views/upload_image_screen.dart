@@ -154,93 +154,103 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Upload Image')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Display image or placeholder
-            if (_image != null)
-              Container(
-                height: 400,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.file(_image!, fit: BoxFit.cover),
-                ),
-              )
-            else
-              Container(
-                height: 400,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Text(
-                    'No image selected',
-                    style: TextStyle(color: Colors.grey),
+      appBar: AppBar(title: Text('Upload Image' , style: TextStyle(color: Colors.white),),
+         backgroundColor: const Color(0xFF9c51b6), 
+        iconTheme: const IconThemeData(
+    color: Colors.white,
+  ),
+      
+      ),
+      
+      body: Container(
+        color: Color(0xffD4BEE4),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Display image or placeholder
+              if (_image != null)
+                Container(
+                  height: 400,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.file(_image!, fit: BoxFit.cover),
+                  ),
+                )
+              else
+                Container(
+                  height: 400,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'No image selected',
+                      style: TextStyle(color: Color(0xFF9c51b6) , fontSize: 18 ),
+                    ),
                   ),
                 ),
+              SizedBox(height: 30),
+              Divider(
+                color: Colors.grey,
+                thickness: 1,
               ),
-            SizedBox(height: 30),
-            Divider(
-              color: Colors.grey,
-              thickness: 1,
-            ),
-            ElevatedButton.icon(
-              onPressed: _pickImage,
-              icon: Icon(Icons.photo_library),
-              label: Text('Select Image'),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _uploadImage,
-              icon: Icon(Icons.upload),
-              label: Text('Upload Image (Current Year)'),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () => _selectDate(context),
-              icon: Icon(Icons.date_range),
-              label: Text('Select Date from Calendar'),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
-            if (_selectedDate != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Text(
-                  "Selected Date: ${_selectedDate!.toLocal()}".split(' ')[0],
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16),
+              ElevatedButton.icon(
+                onPressed: _pickImage,
+                icon: Icon(Icons.photo_library),
+                label: Text('Select Image'),
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
-              SizedBox(
-                height: 10,
+              SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: _uploadImage,
+                icon: Icon(Icons.upload),
+                label: Text('Upload Image (Current Year)'),
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                ),
               ),
-            ElevatedButton.icon(
-              onPressed: _uploadImageForSelectedDate,
-              icon: Icon(Icons.cloud_upload),
-              label: Text('Upload Image for Selected Date'),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                
+              SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: () => _selectDate(context),
+                icon: Icon(Icons.date_range),
+                label: Text('Select Date from Calendar'),
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                ),
               ),
-            ),
-          ],
+              if (_selectedDate != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Text(
+                    "Selected Date: ${_selectedDate!.toLocal()}".split(' ')[0],
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+              ElevatedButton.icon(
+                onPressed: _uploadImageForSelectedDate,
+                icon: Icon(Icons.cloud_upload),
+                label: Text('Upload Image for Selected Date'),
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

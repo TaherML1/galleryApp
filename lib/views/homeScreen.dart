@@ -114,7 +114,8 @@ class _HomescreenState extends State<Homescreen> {
             // Years ExpansionTile
             ExpansionTile(
               title: const Text('Show Years', style: TextStyle(
-                color: Color(0xFF9c51b6),  // Set text color as needed
+                color: Color(0xFF9c51b6),
+                fontWeight: FontWeight.w700
               )),
               leading: const Icon(Icons.calendar_today, color: Color(0xFF9c51b6)),  // Set icon color as needed
               iconColor: Color(0xFF9c51b6),
@@ -135,8 +136,8 @@ class _HomescreenState extends State<Homescreen> {
             ),
             // Favorites ListTile
             ListTile(
-              leading: const Icon(Icons.favorite, color: Color(0xFF9c51b6)),  // Set icon color as needed
-              title: const Text('Favorites', style: TextStyle(color: Color(0xFF9c51b6))),  // Set text color
+              leading: const Icon(Icons.favorite, color: Color(0xFF9c51b6),  ),  // Set icon color as needed
+              title: const Text('Favorites', style: TextStyle(color: Color(0xFF9c51b6) , fontWeight: FontWeight.w700)),  // Set text color
               onTap: () {
                 Navigator.pop(context);
                 Navigator.pushNamed(context, '/favorites');
@@ -148,7 +149,7 @@ class _HomescreenState extends State<Homescreen> {
             // Info ListTile at the bottom
             ListTile(
               leading: const Icon(Icons.info, color: Color(0xFF9c51b6)),  // Set icon color as needed
-              title: const Text('Info', style: TextStyle(color: Color(0xFF9c51b6))),  // Set text color
+              title: const Text('Info', style: TextStyle(color: Color(0xFF9c51b6) , fontWeight: FontWeight.w700)),  // Set text color
               onTap: () {
                 Navigator.pop(context);
                 Navigator.pushNamed(context, '/info');
@@ -241,7 +242,7 @@ backgroundColor: Color(0xffD4BEE4),
                 );
               },
             )
-          : const Center(child: Text('Select a year to view photos.',style: TextStyle(color: Color(0xFF9c51b6) , fontWeight: FontWeight.w500  ,fontSize: 20),  ) ),
+          : const Center(child: Text('Select a year to view photos.',style: TextStyle(color: Color(0xFF9c51b6) , fontWeight: FontWeight.w700  ,fontSize: 20),  ) ),
     );
   }
 }

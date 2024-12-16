@@ -12,11 +12,17 @@ import 'package:gallery_app/views/IntroView.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:gallery_app/views/NotificationScreen.dart';
 import 'package:workmanager/workmanager.dart';  // Import workmanager
-
+import 'package:flutter/services.dart';
 final getIt = GetIt.instance;
 final FirestoreService _firestoreService = getIt<FirestoreService>();
 
 void main() async {
+
+ SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    systemNavigationBarColor: Color(0xFF9c51b6), // Set the navigation bar color
+    systemNavigationBarIconBrightness: Brightness.light, // Change the icon color to light (if the background is dark)
+  ));
+
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase

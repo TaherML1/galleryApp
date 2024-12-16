@@ -79,6 +79,7 @@ class _FullImageScreenState extends State<FullImageScreen> {
       _isEditing = !_isEditing;
       if (!_isEditing) {
         _description = _descriptionController.text;
+        
         // Save the updated description to Firestore
          _firestoreService.updatePhotoDescription(
           widget.photo.year.toString(),
@@ -173,14 +174,27 @@ Future<void> _requestPermission() async {
                           ? TextField(
                             
                               controller: _descriptionController,
+                               style: TextStyle(color: Color(0xFF9c51b6) , fontWeight: FontWeight.w700), 
+                               textAlign: TextAlign.center,
                               decoration: const InputDecoration(
                                 labelText: 'Description',
+                                
                                 border: OutlineInputBorder(),
                               ),
                             )
                           : Text(
                               _description.isEmpty ? 'No description available' : _description,
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold , color: Colors.black),
+                              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700 , color: Color(0xFF9c51b6),
+                              letterSpacing: 1.2,  // Add letter spacing
+                                   shadows: [
+                                     Shadow(
+                                       blurRadius: 1.0,
+                                        color: Colors.black26,  // Subtle shadow behind the text
+                                          offset: Offset(1.1, 1.1),
+                                                 ),
+                                             ], ),
+                               textAlign: TextAlign.center,
+                               
                             ),
                     ),
                     IconButton(
@@ -204,6 +218,7 @@ Future<void> _requestPermission() async {
             Container(
               child: BottomAppBar(
                 color: Color(0xFFF8F6F4),
+                
                 
                 child: Container(
                   child: Padding(
@@ -292,16 +307,17 @@ class FavoriteScreen extends StatefulWidget {
 
 class _FavoriteScreen extends State<FavoriteScreen> {
 
-
-
-
   final FirestoreService _firestoreService = getIt<FirestoreService>();
 
   @override
   Widget build(BuildContext context) {
  return Scaffold(
       appBar: AppBar(
-        title: const Text('Favorites'),
+        title: const Text('Favorites' , style: TextStyle(color: Colors.white),),
+        backgroundColor: Color(0xFF9c51b6),
+         iconTheme: const IconThemeData(
+    color: Colors.white, // Change the drawer icon color here
+  ),
       ),
       body: FutureBuilder<List<Photo>>(
         future: _firestoreService.fetchAllFavoritePhotos(),
@@ -318,36 +334,39 @@ class _FavoriteScreen extends State<FavoriteScreen> {
 
           final favoritePhotos = snapshot.data!;
 
-          return Padding(
-             padding: const EdgeInsets.all(4.0),
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12.0,
-                mainAxisSpacing: 12.0,
-                childAspectRatio: 0.7,
+          return Container(
+            color: Color(0xFFD4BEE4),
+            child: Padding(
+               padding: const EdgeInsets.all(4.0),
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12.0,
+                  mainAxisSpacing: 12.0,
+                  childAspectRatio: 0.7,
+                ),
+                itemCount: favoritePhotos.length,
+                itemBuilder: (context, index) {
+                  final photo = favoritePhotos[index];
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>FullImageScreen(photo: photo)
+                        )
+                      );
+                    },
+                    child: CachedNetworkImage(
+                      imageUrl: photo.url,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) =>
+                          const Center(child: CircularProgressIndicator()),
+                      errorWidget: (context, url, error) => const Icon(Icons.error),
+                    ),
+                  );
+                },
               ),
-              itemCount: favoritePhotos.length,
-              itemBuilder: (context, index) {
-                final photo = favoritePhotos[index];
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>FullImageScreen(photo: photo)
-                      )
-                    );
-                  },
-                  child: CachedNetworkImage(
-                    imageUrl: photo.url,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) =>
-                        const Center(child: CircularProgressIndicator()),
-                    errorWidget: (context, url, error) => const Icon(Icons.error),
-                  ),
-                );
-              },
             ),
           );
         },
@@ -420,7 +439,11 @@ class _RandomPictureWidgetState extends State<randomPictureWidget> {
  Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(
-      title: const Text('Random Photo'),
+      title: const Text('Random Photo' , style: TextStyle(color: Colors.white),),
+       backgroundColor: const Color(0xFF9c51b6), 
+        iconTheme: const IconThemeData(
+    color: Colors.white, // Change the drawer icon color here
+  ),
     ),
     body: _currentPhoto != null
         ? Center(

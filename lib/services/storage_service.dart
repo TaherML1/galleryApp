@@ -15,7 +15,7 @@ class StorageService {
     var result = await FlutterImageCompress.compressAndGetFile(
       file.absolute.path,  // Input file path
       targetPath,          // Output file path
-      quality: 50,         // Adjust compression quality (0-100)
+      quality: 75,         // Adjust compression quality (0-100)
     );
 
     if (result == null) {
