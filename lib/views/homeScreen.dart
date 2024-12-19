@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gallery_app/services/firestore_service.dart';
 import 'package:gallery_app/main.dart';
-import 'package:gallery_app/services/notifications_service.dart';
 import 'package:gallery_app/views/timeline_view.dart';
 import 'package:gallery_app/models/photo.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -16,7 +15,6 @@ class Homescreen extends StatefulWidget {
 
 class _HomescreenState extends State<Homescreen> {
   final FirestoreService _firestoreService = getIt<FirestoreService>();
-  NotificationsService   notificationsService = NotificationsService();
   late Future<List<String>> _years;
   String? _selectedYear;
     // ignore: unused_field
@@ -57,7 +55,7 @@ class _HomescreenState extends State<Homescreen> {
           IconButton(
             icon: const Icon(Icons.home, color: Colors.white),
             onPressed: () {
-              Navigator.pushNamed(context, '/home');
+                 Navigator.popUntil(context, ModalRoute.withName('/home'));
             },
           ),
           IconButton(

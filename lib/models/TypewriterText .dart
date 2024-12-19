@@ -7,11 +7,11 @@ class TypewriterText extends StatefulWidget {
   final Duration speed;
 
   const TypewriterText({
-    Key? key,
+    super.key,
     required this.text,
     required this.textStyle,
     this.speed = const Duration(milliseconds: 100),
-  }) : super(key: key);
+  });
 
   @override
   _TypewriterTextState createState() => _TypewriterTextState();

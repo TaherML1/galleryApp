@@ -4,13 +4,12 @@ import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import '../../models/photo.dart';
 import 'dart:math';
-import 'package:gallery_app/views/NotificationScreen.dart';
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final Logger _logger = Logger();
 
-NotificationScreen notificationScreen = new NotificationScreen();
+ // NotificationScreen notificationScreen = new NotificationScreen();
   Future<List<String>> fetchYears() async {
     try {
       QuerySnapshot snapshot = await _db.collection('photos').get();
@@ -271,7 +270,7 @@ Future<void> checkForMemoryAndScheduleNotification() async {
       _logger.i('Scheduling memory notification for photo taken on ${memoryPhoto.timestamp.year}.');
       
       // Schedule a notification for this memory
-      notificationScreen.scheduleMemoryNotification(memoryPhoto);
+      //notificationScreen.scheduleMemoryNotification(memoryPhoto);
     } else {
       _logger.w("No memory found for today from previous years.");
     }

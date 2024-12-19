@@ -11,7 +11,6 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert'; 
 import 'package:image_gallery_saver/image_gallery_saver.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'dart:typed_data';
 
@@ -29,7 +28,7 @@ class _FullImageScreenState extends State<FullImageScreen> {
   late String _description = '';
   bool _isDownloading = false;
   bool _isEditing = false;
-  
+
   final TextEditingController _descriptionController = TextEditingController();
   final FirestoreService _firestoreService = getIt<FirestoreService>();
 
@@ -37,7 +36,7 @@ class _FullImageScreenState extends State<FullImageScreen> {
   void initState() {
     super.initState();
     _isFavorite = widget.photo.favorite;
-    _description = widget.photo.description ;
+    _description = widget.photo.description;
     _descriptionController.text = _description;
   }
 
@@ -45,7 +44,6 @@ class _FullImageScreenState extends State<FullImageScreen> {
     setState(() {
       _isFavorite = !_isFavorite;
     });
-    // Update the favorite status in Firestore
     await _firestoreService.updateFavoriteStatus(widget.photo.year.toString(), widget.photo.id, _isFavorite);
   }
 
@@ -70,18 +68,13 @@ class _FullImageScreenState extends State<FullImageScreen> {
     }
   }
 
- 
-
-
-
   void _toggleEditMode() async {
     setState(() {
       _isEditing = !_isEditing;
       if (!_isEditing) {
         _description = _descriptionController.text;
-        
-        // Save the updated description to Firestore
-         _firestoreService.updatePhotoDescription(
+
+        _firestoreService.updatePhotoDescription(
           widget.photo.year.toString(),
           widget.photo.id,
           _description,
@@ -90,58 +83,48 @@ class _FullImageScreenState extends State<FullImageScreen> {
     });
   }
 
-Future<void> _requestPermission() async {
-    PermissionStatus status = await Permission.photos.request();
-    if (status.isGranted) {
-      _downloadImage(widget.photo.url);
-    } else {
-      // Show a dialog or alert to the user about why the permission is needed
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Permission to access gallery is denied')));
-    }
-  }
-   Future<void> _downloadImage(String imageUrl) async {
-  setState(() {
-    _isDownloading = true;
-  });
+  Future<void> _downloadImage(String imageUrl) async {
+    setState(() {
+      _isDownloading = true;
+    });
 
-  try {
-    // Print log before starting the HTTP request
-    print('Starting image download from $imageUrl...');
-    
-    // Download the image from the provided URL
-    final response = await http.get(Uri.parse(imageUrl));
-    print('Response status: ${response.statusCode}');  // Log response status
-    
-    if (response.statusCode == 200) {
-      final Uint8List bytes = response.bodyBytes;
-      print('Image download successful, bytes length: ${bytes.length}');
+    try {
+      print('Starting image download from $imageUrl...');
+      final response = await http.get(Uri.parse(imageUrl));
+      print('Response status: ${response.statusCode}');
 
-      // Save the image to the gallery
-      final result = await ImageGallerySaver.saveImage(bytes);
-      print('Image saving result: $result');
-      
-      if (result['isSuccess']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Image saved to gallery!'),backgroundColor:Colors.green,));
+      if (response.statusCode == 200) {
+        final Uint8List bytes = response.bodyBytes;
+        print('Image download successful, bytes length: ${bytes.length}');
+
+        final result = await ImageGallerySaver.saveImage(bytes);
+        print('Image saving result: $result');
+
+        if (result['isSuccess']) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Image saved to gallery!'), backgroundColor: Colors.green),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to save image to gallery'), backgroundColor: Colors.red),
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to save image to gallery'), backgroundColor: Colors.red,));
+          SnackBar(content: Text('Failed to download image, status code: ${response.statusCode}')),
+        );
       }
-    } else {
+    } catch (e) {
+      print('Error occurred while downloading image: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to download image, status code: ${response.statusCode}')));
+        SnackBar(content: Text('Error occurred while downloading image')),
+      );
+    } finally {
+      setState(() {
+        _isDownloading = false;
+      });
     }
-  } catch (e) {
-    print('Error occurred while downloading image: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error occurred while downloading image')));
-  } finally {
-    setState(() {
-      _isDownloading = false;
-    });
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -150,55 +133,53 @@ Future<void> _requestPermission() async {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(formattedDate , style: TextStyle(color: Colors.white),),
+        title: Text(formattedDate, style: TextStyle(color: Colors.white)),
         backgroundColor: Color(0xFF9c51b6),
-         iconTheme: IconThemeData(
-    color: Colors.white,  // Set the color of the back arrow here
-  ),
-        
+        iconTheme: IconThemeData(
+          color: Colors.white,
+        ),
       ),
       body: Container(
         color: Color(0xffD4BEE4),
         child: Column(
-          
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Container(
-               
                 child: Row(
                   children: [
                     Expanded(
                       child: _isEditing
                           ? TextField(
-                            
                               controller: _descriptionController,
-                               style: TextStyle(color: Color(0xFF9c51b6) , fontWeight: FontWeight.w700), 
-                               textAlign: TextAlign.center,
+                              style: TextStyle(color: Color(0xFF9c51b6), fontWeight: FontWeight.w700),
+                              textAlign: TextAlign.center,
                               decoration: const InputDecoration(
                                 labelText: 'Description',
-                                
                                 border: OutlineInputBorder(),
                               ),
                             )
                           : Text(
                               _description.isEmpty ? 'No description available' : _description,
-                              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700 , color: Color(0xFF9c51b6),
-                              letterSpacing: 1.2,  // Add letter spacing
-                                   shadows: [
-                                     Shadow(
-                                       blurRadius: 1.0,
-                                        color: Colors.black26,  // Subtle shadow behind the text
-                                          offset: Offset(1.1, 1.1),
-                                                 ),
-                                             ], ),
-                               textAlign: TextAlign.center,
-                               
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF9c51b6),
+                                letterSpacing: 1.2,
+                                shadows: [
+                                  Shadow(
+                                    blurRadius: 1.0,
+                                    color: Colors.black26,
+                                    offset: Offset(1.1, 1.1),
+                                  ),
+                                ],
+                              ),
+                              textAlign: TextAlign.center,
                             ),
                     ),
                     IconButton(
-                      icon: Icon(_isEditing ? Icons.check : Icons.edit ,size: 30, color: Color(0xFF9c51b6),),
+                      icon: Icon(_isEditing ? Icons.check : Icons.edit, size: 30, color: Color(0xFF9c51b6)),
                       onPressed: _toggleEditMode,
                     ),
                   ],
@@ -207,87 +188,83 @@ Future<void> _requestPermission() async {
             ),
             Expanded(
               child: Center(
-                child: CachedNetworkImage(
-                  imageUrl: widget.photo.url,
-                  fit: BoxFit.contain,
-                  placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                child: InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 4.0,
+                  child: CachedNetworkImage(
+                    imageUrl: widget.photo.url,
+                    fit: BoxFit.contain,
+                    placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                    errorWidget: (context, url, error) => const Icon(Icons.error),
+                  ),
                 ),
               ),
             ),
-            Container(
-              child: BottomAppBar(
-                color: Color(0xFFF8F6F4),
-                
-                
-                child: Container(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      
-                      children: [
-                        
-                        IconButton(
-                          icon: const Icon(Icons.save_alt, color: Color(0xFF9c51b6),),
-                          onPressed: () {
-                             _downloadImage(widget.photo.url);
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            _isFavorite ? Icons.favorite : Icons.favorite_border ,
-                            color: _isFavorite ? Color(0xFF9c51b6) : Color(0xFF9c51b6),
-                          ),
-                          onPressed: _toggleFavoriteStatus,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.share , color: Color(0xFF9c51b6),),
-                          onPressed: () {
-                            _downloadAndShareImage(widget.photo.url);
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete , color: Color(0xFF9c51b6),),
-                          onPressed: () async {
-                            bool confirmDelete = await showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Delete Photo'),
-                                content: const Text('Are you sure you want to delete this photo?'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(false),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(true),
-                                    child: const Text('Delete'),
-                                  ),
-                                ],
-                              ),
-                            );
-                  
-                            if (confirmDelete == true) {
-                              try {
-                                await _firestoreService.deletePhoto(widget.photo.year.toString(), widget.photo.id, widget.photo.url);
-                  
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Photo deleted successfully!')),
-                                );
-                  
-                                Navigator.pop(context);
-                              } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Failed to delete photo: $e')),
-                                );
-                              }
-                            }
-                          },
-                        ),
-                      ],
+            BottomAppBar(
+              color: Color(0xFFF8F6F4),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.save_alt, color: Color(0xFF9c51b6)),
+                      onPressed: () {
+                        _downloadImage(widget.photo.url);
+                      },
                     ),
-                  ),
+                    IconButton(
+                      icon: Icon(
+                        _isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: _isFavorite ? Color(0xFF9c51b6) : Color(0xFF9c51b6),
+                      ),
+                      onPressed: _toggleFavoriteStatus,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.share, color: Color(0xFF9c51b6)),
+                      onPressed: () {
+                        _downloadAndShareImage(widget.photo.url);
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Color(0xFF9c51b6)),
+                      onPressed: () async {
+                        bool confirmDelete = await showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Delete Photo'),
+                            content: const Text('Are you sure you want to delete this photo?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(false),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(true),
+                                child: const Text('Delete'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirmDelete == true) {
+                          try {
+                            await _firestoreService.deletePhoto(widget.photo.year.toString(), widget.photo.id, widget.photo.url);
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Photo deleted successfully!')),
+                            );
+
+                            Navigator.pop(context);
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Failed to delete photo: $e')),
+                            );
+                          }
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -447,46 +424,59 @@ class _RandomPictureWidgetState extends State<randomPictureWidget> {
     ),
     body: _currentPhoto != null
         ? Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('❤️ Todays photo is  ❤️',  style: const TextStyle(fontSize: 20 ),),
-
-                SizedBox(height: 20,),
-                Text(
-                  _currentPhoto!.description, 
-                  style: const TextStyle(fontSize: 18),  // Adjust text styling as needed
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child : GestureDetector(
-                    onTap: (){
-                      if(_currentPhoto != null){
-                        Navigator.push(context, 
-                        MaterialPageRoute(builder: (context) => FullImageScreen(photo: _currentPhoto!)));
-
-                      }
-                     
-
-                    },
-                     child: SizedBox(
-                    height: 600,  // Set the desired height
-                    width: 400,   // Set the desired width
-                    child: Image.network(
-                      _currentPhoto!.url,
-                      fit: BoxFit.cover,
-                        // Adjust how the image should fit the box (e.g., cover, contain, fill)
+            child: Container(
+              color: Color(0xffD4BEE4),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('❤️ Todays photo is  ❤️',  style: const TextStyle(fontSize: 22,color: Color(0xFF9c51b6), letterSpacing: 1.2, shadows: [
+                    Shadow(
+                      blurRadius: 1.0,
+                      
+                    )
+                  ] ),),
+              
+                  SizedBox(height: 20,),
+                  Text(
+                    _currentPhoto!.description, 
+                    textAlign: TextAlign.center,
+                    style: const TextStyle( fontSize: 18,color: Color(0xFF9c51b6), fontWeight: FontWeight.w700, letterSpacing: 1.1,shadows: [Shadow(
+                        blurRadius: 1.0,
+                         color: Colors.black26,
+                          offset: Offset(1.1, 1.1),
+                    )]),  // Adjust text styling as needed
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child : GestureDetector(
+                      onTap: (){
+                        if(_currentPhoto != null){
+                          Navigator.push(context, 
+                          MaterialPageRoute(builder: (context) => FullImageScreen(photo: _currentPhoto!)));
+              
+                        }
+                       
+              
+                      },
+                       child: SizedBox(
+                      height: 600,  // Set the desired height
+                      width: 400,   // Set the desired width
+                      child: Image.network(
+                        _currentPhoto!.url,
+                        fit: BoxFit.cover,
+                          // Adjust how the image should fit the box (e.g., cover, contain, fill)
+                      ),
+                      
+                      
                     ),
-                    
+                    ),
+                   
                     
                   ),
-                  ),
-                 
-                  
-                ),
-                  
-                // Display the stored or fetched photo
-              ],
+                    
+                  // Display the stored or fetched photo
+                ],
+              ),
             ),
           )
         : const Center(child: CircularProgressIndicator()),  // Show loading while fetching

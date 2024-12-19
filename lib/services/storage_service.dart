@@ -1,4 +1,5 @@
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:gallery_app/main.dart';
 import 'dart:io';
 import 'package:path/path.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -46,7 +47,7 @@ class StorageService {
       String downloadURL = await storageRef.getDownloadURL();
       return downloadURL;
     } catch (e) {
-      print('Error uploading image: $e');
+      logger.e('Error uploading image: $e');
       throw Exception('Error uploading image');
     }
   }

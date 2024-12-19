@@ -19,7 +19,7 @@ dependencies:
   firebase_auth: ^5.3.2   
   cloud_firestore: ^5.4.5 
   firebase_storage: ^12.3.5 
-  firebase_messaging: ^15.1.4 
+  firebase_messaging: ^15.1.6 
   image_picker: ^1.1.2
   image: ^4.3.0
   exif: ^3.3.0
@@ -40,6 +40,9 @@ dependencies:
   app_settings: ^5.1.1
   saver_gallery: ^4.0.1
   gallery_saver: ^2.3.2
+  cloud_functions: ^5.2.0
+  uuid: ^4.5.1
+
 
 dev_dependencies:
   flutter_test:
