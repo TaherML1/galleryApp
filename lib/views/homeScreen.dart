@@ -64,13 +64,7 @@ class _HomescreenState extends State<Homescreen> {
             },
             icon: const Icon(Icons.shuffle, color: Colors.white),
           ),
-          IconButton(onPressed: (){
-            Navigator.pushNamed(context, '/notification');
-
-          }, 
           
-          icon: Icon(Icons.notification_add , color: Colors.white,)),
-        
         ],
       ),
      drawer: FutureBuilder<List<String>>(

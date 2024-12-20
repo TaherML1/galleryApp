@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:gallery_app/models/photo.dart';
 import 'package:gallery_app/main.dart';
 import 'package:gallery_app/services/firestore_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -8,11 +6,9 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
-//import 'package:logger/logger.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:http/http.dart' as http;
 import 'dart:typed_data';
-
 
 class NotificationScreen extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -28,16 +24,32 @@ class _NotificationScreenState extends State<NotificationScreen> {
   late String _description = '';
   bool _isDownloading = false;
   bool _isEditing = false;
+  int _currentIndex = 0;
+   int count = 0;
 
   final TextEditingController _descriptionController = TextEditingController();
   final FirestoreService _firestoreService = getIt<FirestoreService>();
 
+  int _getPhotoCount() {
+  count = 0;
+  while (widget.data.containsKey('photo_${count}_url')) {
+    count++;
+  }
+  return count;
+}
+
   @override
   void initState() {
     super.initState();
-    _isFavorite = widget.data['favorite'] ?? false;
-    _description = widget.data['description'] ?? '';
-    _descriptionController.text = _description;
+    if (widget.data != null && widget.data.isNotEmpty) {
+      _isFavorite = widget.data['photo_${_currentIndex}_favorite'] ?? false;
+      _description = widget.data['photo_${_currentIndex}_description'] ?? '';
+      _descriptionController.text = _description;
+
+      // Now you can use _getPhotoCount() to retrieve the number of photos
+    int numberOfPhotos = _getPhotoCount();
+    logger.i('Total number of photos: $numberOfPhotos');
+    }
   }
 
   Future<void> _toggleFavoriteStatus() async {
@@ -45,8 +57,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
       _isFavorite = !_isFavorite;
     });
     await _firestoreService.updateFavoriteStatus(
-      widget.data['year'].toString(),
-      widget.data['id'],
+      widget.data['photo_${_currentIndex}_year'].toString(),
+      widget.data['photo_${_currentIndex}_id'],
       _isFavorite,
     );
   }
@@ -79,8 +91,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
         _description = _descriptionController.text;
 
         _firestoreService.updatePhotoDescription(
-          widget.data['year'].toString(),
-          widget.data['id'],
+          widget.data['photo_${_currentIndex}_year'].toString(),
+          widget.data['photo_${_currentIndex}_id'],
           _description,
         );
       }
@@ -130,10 +142,50 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
+ void _navigatePhotos(int direction) {
+  if (widget.data.isEmpty) return; // Prevent navigation if data is empty
+  logger.i('widget data length : ' + widget.data.length.toString());
+  setState(() {
+    int newIndex = _currentIndex + direction;
+     logger.i('newIndex : ' + newIndex.toString());
+   logger.i('Total number of photos: $count');
+     if (newIndex >= 0 && newIndex < count){
+   _currentIndex = ((_currentIndex + direction) % widget.data.length).toInt();
+    _isFavorite = widget.data['photo_${_currentIndex}_favorite'] ?? false;
+    _description = widget.data['photo_${_currentIndex}_description'] ?? '';
+    _descriptionController.text = _description;
+     }else{
+       ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('there is no image'), backgroundColor: Colors.red),
+          );
+     }
+ 
+  });
+}
+
+
+
+
+
   @override
   Widget build(BuildContext context) {
+    if (widget.data == null || widget.data.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('No Data', style: TextStyle(color: Colors.white)),
+          backgroundColor: Color(0xFF9c51b6),
+          iconTheme: IconThemeData(
+            color: Colors.white,
+          ),
+        ),
+        body: Center(
+          child: Text('No data available'),
+        ),
+      );
+    }
+
     final DateFormat dateFormat = DateFormat('MMMM dd, yyyy');
-    final String formattedDate = dateFormat.format(DateTime.parse(widget.data['timestamp']));
+    final String formattedDate = dateFormat.format(DateTime.parse(widget.data['photo_${_currentIndex}_timestamp']));
 
     return Scaffold(
       appBar: AppBar(
@@ -196,13 +248,26 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   minScale: 0.5,
                   maxScale: 4.0,
                   child: CachedNetworkImage(
-                    imageUrl: widget.data['photoUrl'],
+                    imageUrl: widget.data['photo_${_currentIndex}_url'],
                     fit: BoxFit.contain,
                     placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
                     errorWidget: (context, url, error) => const Icon(Icons.error),
                   ),
                 ),
               ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.arrow_back_ios, color: Color(0xFF9c51b6)),
+                  onPressed: () => _navigatePhotos(-1),
+                ),
+                IconButton(
+                  icon: Icon(Icons.arrow_forward_ios, color: Color(0xFF9c51b6)),
+                  onPressed: () => _navigatePhotos(1),
+                ),
+              ],
             ),
             BottomAppBar(
               color: Color(0xFFF8F6F4),
@@ -214,7 +279,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     IconButton(
                       icon: const Icon(Icons.save_alt, color: Color(0xFF9c51b6)),
                       onPressed: () {
-                        _downloadImage(widget.data['photoUrl']);
+                        _downloadImage(widget.data['photo_${_currentIndex}_url']);
                       },
                     ),
                     IconButton(
@@ -227,51 +292,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     IconButton(
                       icon: const Icon(Icons.share, color: Color(0xFF9c51b6)),
                       onPressed: () {
-                        _downloadAndShareImage(widget.data['photoUrl']);
+                        _downloadAndShareImage(widget.data['photo_${_currentIndex}_url']);
                       },
                     ),
-                  /*  IconButton(
-                      icon: const Icon(Icons.delete, color: Color(0xFF9c51b6)),
-                      onPressed: () async {
-                        bool confirmDelete = await showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Delete Photo'),
-                            content: const Text('Are you sure you want to delete this photo?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(false),
-                                child: const Text('Cancel'),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(true),
-                                child: const Text('Delete'),
-                              ),
-                            ],
-                          ),
-                        );
-
-                        if (confirmDelete == true) {
-                          try {
-                            await _firestoreService.deletePhoto(
-                              widget.data['year'].toString(),
-                              widget.data['id'],
-                              widget.data['photoUrl'],
-                            );
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Photo deleted successfully!')),
-                            );
-
-                            Navigator.pop(context);
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Failed to delete photo: $e')),
-                            );
-                          }
-                        }
-                      },
-                    ),*/
                   ],
                 ),
               ),
@@ -282,36 +305,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 }
-
-
-
-  // Function to schedule the notification after 5 seconds
-  void scheduleNotification() {
-    Future.delayed(Duration(seconds: 5), () {
-      AwesomeNotifications().createNotification(
-        content: NotificationContent(
-          id: 10,
-          channelKey: 'basic_channel',
-          title: 'Reminder!',
-          body: 'This notification appeared after 5 seconds.',
-        ),
-      );
-    });
-  }
-
-
-  void scheduleMemoryNotification(Photo memoryPhoto) {
-    AwesomeNotifications().createNotification(
-      content: NotificationContent(
-        id: 10, // Unique ID for the notification
-        channelKey: 'basic_channel',
-        title: 'Memory from ${memoryPhoto.year}!',
-        body: 'Remember this? "${memoryPhoto.description}"',
-        bigPicture: memoryPhoto.url, // Optional: show the photo in the notification
-        notificationLayout: NotificationLayout.BigPicture, // Layout for showing image
-      ),
-    );
-  }
 
 
 

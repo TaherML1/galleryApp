@@ -89,16 +89,16 @@ class _FullImageScreenState extends State<FullImageScreen> {
     });
 
     try {
-      print('Starting image download from $imageUrl...');
+      logger.i('Starting image download from $imageUrl...');
       final response = await http.get(Uri.parse(imageUrl));
-      print('Response status: ${response.statusCode}');
+      logger.i('Response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final Uint8List bytes = response.bodyBytes;
-        print('Image download successful, bytes length: ${bytes.length}');
+        logger.i('Image download successful, bytes length: ${bytes.length}');
 
         final result = await ImageGallerySaver.saveImage(bytes);
-        print('Image saving result: $result');
+        logger.i('Image saving result: $result');
 
         if (result['isSuccess']) {
           ScaffoldMessenger.of(context).showSnackBar(

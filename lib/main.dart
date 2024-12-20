@@ -112,7 +112,7 @@ Future<void> requestStoragePermission() async {
 class MyApp extends StatelessWidget {
   final bool isFirstTime;
 
-  MyApp({super.key, required this.isFirstTime});
+ const MyApp({super.key, required this.isFirstTime});
 
   @override
   Widget build(BuildContext context) {

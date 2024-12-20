@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:gallery_app/services/firestore_service.dart';
@@ -29,6 +31,11 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
     }
   }
 
+String getRandomDescription(){
+  final random = Random();
+   int index = random.nextInt(descriptions.length);
+    return descriptions[index];
+}
 
   // Method to upload image and save its URL to Firestore dynamically based on the current year
   Future<void> _uploadImage() async {
@@ -46,6 +53,7 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
     });
 
     try {
+      String description = getRandomDescription();
       // Upload the image to Firebase Storage and get the URL
       String imageUrl = await _storageService.uploadImage(_image!);
 
@@ -55,7 +63,7 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
       // Save the photo data to Firestore under the current year
       await _firestoreService.addPhoto(currentYear, {
         'url': imageUrl,
-        'description': 'A photo uploaded automatically via app',
+        'description': description,
         'timestamp': DateTime.now().toIso8601String(),
       });
 
@@ -72,7 +80,7 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
       });
 
     } catch (e) {
-      print('Error uploading image: $e');
+      logger.e('Error uploading image: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error uploading image: $e"),
@@ -95,6 +103,8 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
     }
 
     try {
+      
+      String description = getRandomDescription();
       // Upload the image to Firebase Storage and get the URL
       String imageUrl = await _storageService.uploadImage(_image!);
 
@@ -107,7 +117,7 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
       // Save the photo data to Firestore under the selected year
       await _firestoreService.addPhoto(selectedYear, {
         'url': imageUrl,
-        'description': 'A photo uploaded for a specific year',
+        'description':description,
         'timestamp': timestamp,
       });
 
@@ -125,7 +135,7 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
       });
 
     } catch (e) {
-      print('Error uploading image: $e');
+      logger.e('Error uploading image: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error uploading image: $e"),
@@ -256,3 +266,16 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
     );
   }
 }
+
+List<String> descriptions = [
+  "Sevgiyle yakalanmış anılar.",
+  "Saklanacak bir hatıra.",
+  "Her fotoğraf bir hikâye anlatır.",
+  "Aşkımızın bir başka güzel bölümü.",
+  "Kalpleri ısıtan bir anı.",
+  "Birlikte paylaştığımız değerli anlar.",
+  "Yakalanan bir mutluluk anı.",
+  "Zamanın durduğu sevgi ve kahkaha dolu bir an.",
+  "Seninle asla unutamayacağım bir an.",
+  "Birlikte yarattığımız sayısız hatıradan biri."
+];

@@ -1,6 +1,5 @@
-/* eslint-disable no-undef */
-/* eslint-disable no-unused-vars */
 /* eslint-disable require-jsdoc */
+/* eslint-disable no-unused-vars */
 /* eslint-disable max-len */
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
@@ -56,92 +55,90 @@ exports.checkMemoriesAndSendNotification = functions.pubsub.schedule("every 5 mi
 
         console.log(`Retrieved ${yearsSnapshot.size} photos.`);
 
-        // Loop through each photo
-        yearsSnapshot.forEach(async (doc) => {
+        // Aggregate photos that match today's date
+        const matchingPhotos = [];
+        yearsSnapshot.forEach((doc) => {
           const photoData = doc.data();
           const timestamp = photoData.timestamp;
 
           if (timestamp && typeof timestamp === "string") {
             const photoDate = timestamp.split("T")[0]; // Extract the date part (YYYY-MM-DD)
-
-            // Compare the date part (YYYY-MM-DD) with today's date
-            if (photoDate === todayDate) {
-              console.log(`Photo uploaded today: ${timestamp}. Skipping...`);
-              return;
-            }
-
             const photoMonthDay = timestamp.slice(5, 10); // Extract the month and day part (MM-DD)
             const todayMonthDay = todayDate.slice(5, 10); // Extract the month and day part (MM-DD)
 
             // Compare the month and day with today's date
             if (photoMonthDay === todayMonthDay) {
-              console.log(`Matching memory found for today: ${timestamp}. Preparing notification...`);
-
-              // Prepare the FCM notification payload
-              const payload = {
-                notification: {
-                  title: "Memory Reminder",
-                  body: `Check out this memory from ${timestamp.split("T")[0]}!`,
-                  imageUrl: photoData.url,
-                  sound: "default",
-                },
-                data: {
-                  photoUrl: photoData.url,
-                  description: photoData.description,
-                  timestamp: photoData.timestamp,
-                },
-              };
-
-              // Loop through each FCM token and send a notification
-              for (const token of fcmTokens) {
-                // Prepare the message object for v1 API
-                const message = {
-                  message: {
-                    token: token,
-                    notification: {
-                      title: payload.notification.title,
-                      body: payload.notification.body,
-                      image: payload.notification.imageUrl,
-                    },
-                    data: payload.data,
-                  },
-                };
-
-                // Log the request payload for debugging
-                console.log(`Request Payload: ${JSON.stringify(message)}`);
-
-                // Send the notification using the v1 API
-                try {
-                  // Get an access token
-                  const accessToken = await getAccessToken();
-
-                  // Log the access token for debugging
-                  console.log(`Access Token: ${accessToken}`);
-
-                  // Send the message using axios to the v1 API
-                  const response = await axios.post(
-                      `https://fcm.googleapis.com/v1/projects/${functions.config().project.id}/messages:send`,
-                      message,
-                      {
-                        headers: {
-                          "Authorization": `Bearer ${accessToken}`,
-                          "Content-Type": "application/json",
-                        },
-                      },
-                  );
-
-                  console.log(`Notification sent for memory to ${response.data.successCount} devices`);
-                } catch (error) {
-                  console.error(`Failed to send notification: ${error.response ? JSON.stringify(error.response.data) : error.message}`);
-                }
-              }
-            } else {
-              console.log(`No matching memory found for today: ${timestamp.split("T")[0]}. Skipping...`);
+              matchingPhotos.push(photoData);
             }
-          } else {
-            console.error(`Invalid or missing timestamp for photo ID ${doc.id}`);
           }
         });
+
+        if (matchingPhotos.length === 0) {
+          console.log("No matching memories found for today.");
+          return;
+        }
+
+        console.log(`Found ${matchingPhotos.length} matching memories for today.`);
+
+        // Prepare the FCM notification payload
+        const payload = {
+          notification: {
+            title: "Memory Reminder",
+            body: `Check out these memories from today!`,
+            sound: "default",
+          },
+          data: {},
+        };
+
+        // Add each photo to the data field with unique keys
+        matchingPhotos.forEach((photo, index) => {
+          payload.data[`photo_${index}_url`] = photo.url;
+          payload.data[`photo_${index}_description`] = photo.description;
+          payload.data[`photo_${index}_timestamp`] = photo.timestamp;
+        });
+
+        // Loop through each FCM token and send a notification
+        for (const token of fcmTokens) {
+          // Prepare the message object for v1 API
+          const message = {
+            message: {
+              token: token,
+              notification: {
+                title: payload.notification.title,
+                body: payload.notification.body,
+              },
+              data: payload.data,
+            },
+          };
+
+          // Log the request payload for debugging
+          console.log(`Request Payload: ${JSON.stringify(message)}`);
+
+          // Send the notification using the v1 API
+          try {
+            // Get an access token
+            const accessToken = await getAccessToken();
+
+            // Log the access token for debugging
+            console.log(`Access Token: ${accessToken}`);
+
+            // Send the message using axios to the v1 API
+            const response = await axios.post(
+                `https://fcm.googleapis.com/v1/projects/${functions.config().project.id}/messages:send`,
+                message,
+                {
+                  headers: {
+                    "Authorization": `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                  },
+                },
+            );
+
+            console.log(`Notification sent for memory to ${response.data.successCount} devices`);
+          } catch (error) {
+            console.error(`Failed to send notification: ${error.response ? JSON.stringify(error.response.data) : error.message}`);
+          }
+        }
       } catch (error) {
         console.error(`Error in function execution: ${error}`);
       }
