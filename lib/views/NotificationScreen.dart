@@ -6,9 +6,9 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:http/http.dart' as http;
 import 'dart:typed_data';
+import 'package:gal/gal.dart';
 
 class NotificationScreen extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -100,47 +100,41 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Future<void> _downloadImage(String imageUrl) async {
-    setState(() {
-      _isDownloading = true;
-    });
+  setState(() {
+    _isDownloading = true;
+  });
 
-    try {
-      logger.i('Starting image download from $imageUrl...');
-      final response = await http.get(Uri.parse(imageUrl));
-      logger.i('Response status: ${response.statusCode}');
+  try {
+    logger.i('Starting image download from $imageUrl...');
+    final response = await http.get(Uri.parse(imageUrl));
+    logger.i('Response status: ${response.statusCode}');
 
-      if (response.statusCode == 200) {
-        final Uint8List bytes = response.bodyBytes;
-        logger.i('Image download successful, bytes length: ${bytes.length}');
+    if (response.statusCode == 200) {
+      final Uint8List bytes = response.bodyBytes;
+      logger.i('Image download successful, bytes length: ${bytes.length}');
 
-        final result = await ImageGallerySaver.saveImage(bytes);
-        logger.i('Image saving result: $result');
+      // Use the putImageBytes method from the gal package
+      await Gal.putImageBytes(bytes, album: 'Downloaded Images');
 
-        if (result['isSuccess']) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Image saved to gallery!'), backgroundColor: Colors.green),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to save image to gallery'), backgroundColor: Colors.red),
-          );
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to download image, status code: ${response.statusCode}')),
-        );
-      }
-    } catch (e) {
-      logger.e('Error occurred while downloading image: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error occurred while downloading image')),
+        SnackBar(content: Text('Image saved to gallery!'), backgroundColor: Colors.green),
       );
-    } finally {
-      setState(() {
-        _isDownloading = false;
-      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to download image, status code: ${response.statusCode}')),
+      );
     }
+  } catch (e) {
+    print('Error occurred while downloading image: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error occurred while downloading image')),
+    );
+  } finally {
+    setState(() {
+      _isDownloading = false;
+    });
   }
+}
 
  void _navigatePhotos(int direction) {
   if (widget.data.isEmpty) return; // Prevent navigation if data is empty

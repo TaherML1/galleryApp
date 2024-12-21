@@ -268,14 +268,14 @@ String getRandomDescription(){
 }
 
 List<String> descriptions = [
-  "Sevgiyle yakalanmış anılar.",
-  "Saklanacak bir hatıra.",
-  "Her fotoğraf bir hikâye anlatır.",
-  "Aşkımızın bir başka güzel bölümü.",
-  "Kalpleri ısıtan bir anı.",
-  "Birlikte paylaştığımız değerli anlar.",
-  "Yakalanan bir mutluluk anı.",
-  "Zamanın durduğu sevgi ve kahkaha dolu bir an.",
-  "Seninle asla unutamayacağım bir an.",
-  "Birlikte yarattığımız sayısız hatıradan biri."
+  "Sevgiyle yakalanmış anılar💜",
+  "Saklanacak bir hatıra💜",
+  "Her fotoğraf bir hikâye anlatır💜",
+  "Aşkımızın bir başka güzel bölümü💜",
+  "Kalpleri ısıtan bir anı💜",
+  "Birlikte paylaştığımız değerli anlar💜",
+  "Yakalanan bir mutluluk anı💜",
+  "Zamanın durduğu sevgi ve kahkaha dolu bir an💜",
+  "Seninle asla unutamayacağım bir an💜",
+  "Birlikte yarattığımız sayısız hatıradan biri💜"
 ];
