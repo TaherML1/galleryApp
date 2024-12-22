@@ -19,11 +19,12 @@ var logger = Logger();
 final getIt = GetIt.instance;
 final FirestoreService _firestoreService = getIt<FirestoreService>();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 void main() async {
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-    systemNavigationBarColor: Color(0xFF9c51b6), // Set the navigation bar color
-    systemNavigationBarIconBrightness: Brightness.light, // Change the icon color to light (if the background is dark)
+    systemNavigationBarColor: Color(0xFF9c51b6),
+    systemNavigationBarIconBrightness: Brightness.light,
   ));
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +35,6 @@ void main() async {
   // Initialize FirestoreService
   getIt.registerLazySingleton(() => FirestoreService());
 
-  //storeUserData();
   checkUserExistence();
 
   // Initialize Firebase Messaging
@@ -72,26 +72,24 @@ void main() async {
     }
   });
 
-  // Handle message opening
+  // Handle message opening (when the app is running or in the background)
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-  logger.i('Message clicked!');
-  // Navigate to the NotificationScreen with the data
-  navigatorKey.currentState?.pushNamed(
-    '/notification',
-    arguments: message.data,
-  );
-});
+    logger.i('Message clicked!');
+    navigatorKey.currentState?.pushNamed(
+      '/notification',
+      arguments: message.data,
+    );
+  });
 
+  // Check for the initial message if the app was launched by a notification
+  RemoteMessage? initialMessage = await messaging.getInitialMessage();
 
   // Check if the intro has been shown before
   final prefs = await SharedPreferences.getInstance();
   bool isFirstTime = prefs.getBool('first_time') ?? true;
 
-
-  runApp(MyApp(isFirstTime: isFirstTime));
+  runApp(MyApp(isFirstTime: isFirstTime, initialMessage: initialMessage?.data));
 }
-
-
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -111,8 +109,9 @@ Future<void> requestStoragePermission() async {
 
 class MyApp extends StatelessWidget {
   final bool isFirstTime;
+  final Map<String, dynamic>? initialMessage;
 
- const MyApp({super.key, required this.isFirstTime});
+  const MyApp({super.key, required this.isFirstTime, this.initialMessage});
 
   @override
   Widget build(BuildContext context) {
@@ -123,6 +122,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.purple,
       ),
       navigatorKey: navigatorKey,
+      scaffoldMessengerKey: scaffoldMessengerKey,
       initialRoute: isFirstTime ? '/intro' : '/home',
       routes: {
         '/home': (context) => Homescreen(),
@@ -131,9 +131,28 @@ class MyApp extends StatelessWidget {
         '/random': (context) => randomPictureWidget(),
         '/intro': (context) => IntroInfoWidget(),
         '/info': (context) => InfoPageWidget(),
-        '/notification': (context) => NotificationScreen(data: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>),
+        '/notification': (context) => NotificationScreen(
+          data: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>,
+        ),
+      },
+      onGenerateRoute: (settings) {
+        if (initialMessage != null) {
+          // Delay navigation to the NotificationScreen by 3 seconds
+          Future.delayed(Duration(seconds: 3), () {
+            scaffoldMessengerKey.currentState?.showSnackBar(
+              SnackBar(
+                content: Text('Navigating to Notification Screen...'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+            navigatorKey.currentState?.pushNamed(
+              '/notification',
+              arguments: initialMessage,
+            );
+          });
+        }
+        return null;
       },
     );
   }
 }
-

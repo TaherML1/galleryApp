@@ -24,7 +24,7 @@ async function getAccessToken() {
   return tokens.access_token;
 }
 
-exports.checkMemoriesAndSendNotification = functions.pubsub.schedule("every 5 minutes").onRun(
+exports.checkMemoriesAndSendNotification = functions.pubsub.schedule("every 30 minutes").onRun(
     async (context) => {
       const today = new Date();
       const todayDate = today.toISOString().split("T")[0]; // Get today's date (YYYY-MM-DD)
