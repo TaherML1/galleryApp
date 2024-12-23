@@ -57,6 +57,7 @@ exports.checkMemoriesAndSendNotification = functions.pubsub.schedule("every 30 m
 
         // Aggregate photos that match today's date
         const matchingPhotos = [];
+        // Aggregate photos that match today's date, but exclude photos from the current year
         yearsSnapshot.forEach((doc) => {
           const photoData = doc.data();
           const timestamp = photoData.timestamp;
@@ -66,12 +67,17 @@ exports.checkMemoriesAndSendNotification = functions.pubsub.schedule("every 30 m
             const photoMonthDay = timestamp.slice(5, 10); // Extract the month and day part (MM-DD)
             const todayMonthDay = todayDate.slice(5, 10); // Extract the month and day part (MM-DD)
 
-            // Compare the month and day with today's date
-            if (photoMonthDay === todayMonthDay) {
+            // Extract the year from the photo's timestamp
+            const photoYear = parseInt(timestamp.slice(0, 4), 10); // Extract the year (YYYY)
+            const currentYear = today.getFullYear(); // Get the current year (e.g., 2024)
+
+            // Compare the month and day with today's date and check if the photo is from a previous year
+            if (photoMonthDay === todayMonthDay && photoYear < currentYear) {
               matchingPhotos.push(photoData);
             }
           }
         });
+
 
         if (matchingPhotos.length === 0) {
           console.log("No matching memories found for today.");

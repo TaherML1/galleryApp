@@ -194,6 +194,7 @@ Future<void> _downloadImage(String imageUrl) async {
                 ),
               ),
             ),
+            SizedBox(height: 20,),
             BottomAppBar(
               color: Color(0xFFF8F6F4),
               child: Padding(

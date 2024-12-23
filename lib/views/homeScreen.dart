@@ -181,7 +181,7 @@ class _HomescreenState extends State<Homescreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0), // Add horizontal padding
                 child: CarouselSlider(
                   options: CarouselOptions(
-                    height: 500.0, // Increase the height
+                    height: 400.0, // Increase the height
                     enlargeCenterPage: true,
                     autoPlay: true,
                     aspectRatio: 16 / 9,

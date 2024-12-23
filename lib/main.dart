@@ -120,6 +120,7 @@ class MyApp extends StatelessWidget {
       title: 'Photo Gallery App',
       theme: ThemeData(
         primarySwatch: Colors.purple,
+         fontFamily: 'SanFrancisco',
       ),
       navigatorKey: navigatorKey,
       scaffoldMessengerKey: scaffoldMessengerKey,
