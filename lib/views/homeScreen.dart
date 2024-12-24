@@ -7,6 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:gallery_app/views/yearPhotosScreen.dart'; // Import the new widget
+import 'package:audioplayers/audioplayers.dart';
 
 class Homescreen extends StatefulWidget {
   const Homescreen({super.key});
@@ -20,6 +21,9 @@ class _HomescreenState extends State<Homescreen> {
   late Future<List<String>> _years;
   List<String> _favoritePhotos = [];
   List<Photo> _memoryPhotos = [];
+   late AudioPlayer _audioPlayer;
+   bool _isPlaying = true;
+   Duration _lastPosition = Duration.zero; // Store the last position here
 
   @override
   void initState() {
@@ -27,7 +31,32 @@ class _HomescreenState extends State<Homescreen> {
     _years = _firestoreService.fetchYears();
     _loadFavorites();
     _checkForMemory();
+   _audioPlayer = AudioPlayer();
+      _audioPlayer.setReleaseMode(ReleaseMode.loop); 
+      
   }
+
+ Future<void> _playNancy() async {
+    setState(() {
+      _isPlaying = !_isPlaying;
+    });
+
+    if (!_isPlaying) {
+      try {
+        // Resume from the last position
+        await _audioPlayer.play(AssetSource('NancyAjram.mp3'), position: _lastPosition);
+        print('Sound started successfully from position $_lastPosition');
+      } catch (e) {
+        print('Error playing sound: $e');
+      }
+    } else {
+      // Stop the audio and store the current position
+      _lastPosition = await _audioPlayer.getCurrentPosition() ?? Duration.zero;
+      await _audioPlayer.stop();
+      print('Sound stopped at position $_lastPosition');
+    }
+  }
+
 
   Future<void> _loadFavorites() async {
     final prefs = await SharedPreferences.getInstance();
@@ -71,6 +100,15 @@ class _HomescreenState extends State<Homescreen> {
             },
             icon: const Icon(Icons.shuffle, color: Colors.white),
           ),
+          IconButton(
+            onPressed:(){
+              _playNancy();
+            }, 
+            icon: Icon(
+              _isPlaying ? Icons.music_off_outlined : Icons.music_note,
+            ),
+            
+          )
         ],
       ),
       drawer: FutureBuilder<List<String>>(
@@ -248,3 +286,5 @@ class _HomescreenState extends State<Homescreen> {
     );
   }
 }
+
+

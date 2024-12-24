@@ -213,7 +213,7 @@ class _InfoPageWidgetState extends State<InfoPageWidget> {
                   child: PageView(
                     controller: _pageController, // Assign the PageController
                     children: [
-                      _buildIntroPage('Doğum günün dolayıla bu uygulamayı sana hediye etmek istiyorum ablacım', const Color(0xFFCF9FFF)),
+                      _buildIntroPage('Doğum günün dolayıla bu uygulamayı sana hediye etmek istiyorum ablacım ssssssssssssssssssssssssssssssssssssssssssssssssssssssss', const Color(0xFFCF9FFF)),
                       _buildIntroPage('Uzun ve mutlu bir ömür diliyorum', const Color(0xFFCF9FFF)),
                       _buildIntroPage('Seni çok seviyorum ❤️', const Color(0xFFCF9FFF)),
                     ],

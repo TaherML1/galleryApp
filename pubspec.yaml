@@ -50,6 +50,10 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/avatar6.png
+    - assets/typewriter.mp3
+    - assets/NancyAjram.mp3
+
  
 
   fonts:
