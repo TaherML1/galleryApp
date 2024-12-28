@@ -7,6 +7,15 @@ workflows:
       flutter: stable
       xcode: latest
     scripts:
+      - name: Clean the project
+        script: |
+          flutter clean
+      - name: Update Flutter
+        script: |
+          flutter upgrade
+      - name: Regenerate iOS files
+        script: |
+          flutter create .
       - name: Install dependencies
         script: |
           flutter pub get
