@@ -21,14 +21,23 @@ workflows:
         script: |
           cd ios
           pod deintegrate
-          # Ensure Podfile exists and set platform version
-          if [ ! -f "Podfile" ]; then
-            echo "platform :ios, '12.0'" > Podfile
-            echo "workspace 'Runner.xcworkspace'" >> Podfile
-            echo "use_frameworks!" >> Podfile
-            echo "use_flutter!" >> Podfile
-          fi
-          pod install --repo-update
+          pod repo update
+          rm Podfile
+          flutter precache
+          flutter pub get
+      - name: Update Podfile if necessary
+        script: |
+          echo "platform :ios, '13.0'" > ios/Podfile
+          echo "use_frameworks!" >> ios/Podfile
+          echo "target 'Runner' do" >> ios/Podfile
+          echo "  use_flutter!" >> ios/Podfile
+          echo "  pod 'app_settings', '~> 4.0.0'" >> ios/Podfile
+          echo "end" >> ios/Podfile
+          echo "post_install do |installer|" >> ios/Podfile
+          echo "  installer.pods_project.targets.each do |target|" >> ios/Podfile
+          echo "    flutter_additional_ios_build_settings(target)" >> ios/Podfile
+          echo "  end" >> ios/Podfile
+          echo "end" >> ios/Podfile
       - name: Install dependencies
         script: |
           flutter pub get
