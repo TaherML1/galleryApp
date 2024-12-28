@@ -15,6 +15,12 @@ jobs:
           channel: 'stable'
           architecture: x64
 
+      - name: Flutter doctor
+        run: flutter doctor
+
+      - name: Flutter clean
+        run: flutter clean
+
       - name: Get Flutter dependencies
         run: flutter pub get
 
