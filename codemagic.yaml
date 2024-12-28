@@ -25,6 +25,7 @@ workflows:
           rm Podfile
           flutter precache
           flutter pub get
+          flutter create .
       - name: Update Podfile if necessary
         script: |
           echo "platform :ios, '13.0'" > ios/Podfile
