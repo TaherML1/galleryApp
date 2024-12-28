@@ -6,10 +6,16 @@ workflows:
     environment:
       flutter: stable
       xcode: latest
-    dependencies:
-      caches:
-        - cocoapods
     scripts:
+      - name: Clean the project
+        script: |
+          flutter clean
+      - name: Update Flutter
+        script: |
+          flutter upgrade
+      - name: Regenerate iOS files
+        script: |
+          flutter create . --org com.taherml
       - name: Install dependencies
         script: |
           flutter pub get
