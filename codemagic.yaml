@@ -19,9 +19,9 @@ workflows:
           flutter create . --org com.taherml
       - name: Update Podfile if necessary
         script: |
-          # Modify Podfile if specific changes are required (e.g., platform version)
-          sed -i.bak 's/platform :ios, '\''9.0'\''/platform :ios, '\''10.0'\''/' ios/Podfile
-          rm ios/Podfile.bak
+          # Directly set the platform version in the Podfile
+          echo "platform :ios, '13.0'" > ios/Podfile
+          # You can add any other necessary changes to the Podfile here
       - name: Install dependencies
         script: |
           flutter pub get
