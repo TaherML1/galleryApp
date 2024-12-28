@@ -1,7 +1,8 @@
+version: 2.0
+
 workflows:
-  ios:
+  ios_build:
     name: iOS Build
-    platform: ios
     scripts:
       - name: Install dependencies
         script: |
