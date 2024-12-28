@@ -19,9 +19,11 @@ workflows:
           flutter create . --org com.taherml
       - name: Update Podfile if necessary
         script: |
-          # Directly set the platform version in the Podfile
+          # Modify the Podfile to set the platform version and ensure workspace is set
           echo "platform :ios, '13.0'" > ios/Podfile
-          # You can add any other necessary changes to the Podfile here
+          echo "workspace 'Runner.xcworkspace'" >> ios/Podfile
+          # Ensure dependencies are added (if necessary, depending on your project setup)
+          # This will ensure that pod dependencies are properly included
       - name: Install dependencies
         script: |
           flutter pub get
