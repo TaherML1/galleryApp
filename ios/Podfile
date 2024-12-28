@@ -9,15 +9,11 @@ project 'Runner', {
 }
 
 def flutter_root
-  generated_xcode_build_settings_path = File.expand_path(File.join('..', '.flutter-plugins-dependencies'))
-  if File.exist?(generated_xcode_build_settings_path)
-    eval(File.read(generated_xcode_build_settings_path))
-    return
-  end
-  raise "#{generated_xcode_build_settings_path} does not exist. Please run 'flutter pub get' first"
+  # Update to correctly find the Flutter SDK
+  File.expand_path('..', File.dirname(`which flutter`.strip))
 end
 
-require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+require File.expand_path(File.join(flutter_root, 'packages', 'flutter_tools', 'bin', 'podhelper'))
 
 flutter_ios_podfile_setup
 
