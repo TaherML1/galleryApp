@@ -6,7 +6,7 @@ workflows:
     environment:
       flutter: stable
       xcode: latest
-      cocoapods: default  # Use the default CocoaPods version provided by Codemagic
+      cocoapods: default
     scripts:
       - name: Clean the project
         script: |
@@ -17,13 +17,16 @@ workflows:
       - name: Regenerate iOS files
         script: |
           flutter create . --org com.taherml
+      - name: Clean iOS Pods
+        script: |
+          cd ios
+          pod deintegrate
+          pod install --repo-update
       - name: Update Podfile if necessary
         script: |
-          # Modify the Podfile to set the platform version and ensure workspace is set
           echo "platform :ios, '13.0'" > ios/Podfile
           echo "workspace 'Runner.xcworkspace'" >> ios/Podfile
-          # Ensure use_flutter! is correctly included (if missing)
-         
+          echo "use_flutter!" >> ios/Podfile
       - name: Install dependencies
         script: |
           flutter pub get
