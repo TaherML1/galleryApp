@@ -15,7 +15,7 @@ workflows:
           flutter upgrade
       - name: Regenerate iOS files
         script: |
-          flutter create .
+          flutter create . --org com.taherml
       - name: Install dependencies
         script: |
           flutter pub get
