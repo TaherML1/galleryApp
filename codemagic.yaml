@@ -7,7 +7,7 @@ workflows:
       flutter: stable
       xcode: latest
     dependencies:
-      caches:
+     caches:
         - cocoapods
     scripts:
       - name: Install dependencies
