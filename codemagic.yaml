@@ -32,7 +32,8 @@ workflows:
           brew uninstall cocoapods
           sudo gem uninstall cocoapods
           sudo gem install cocoapods -v 1.10.0 -n /usr/local/bin
-          sudo gem install cocoapods-user-defined-build-types
+          sudo gem install public_suffix -v 5.1.1
+          sudo gem install cocoapods-user-defined-build-types -v 1.0.0
       - name: Update Podfile if necessary
         script: |
           echo "platform :ios, '13.0'" > ios/Podfile
