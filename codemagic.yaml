@@ -21,11 +21,16 @@ workflows:
         script: |
           # Modify the Podfile to set the platform version and ensure workspace is set
           echo "platform :ios, '13.0'" > ios/Podfile
-          echo "workspace 'Runner.xcworkspace'" >> ios/Podfile
-          # Ensure dependencies are added (if necessary, depending on your project setup)
-          # Add app_settings and any other dependencies
-          echo "pod 'app_settings', '~> 4.0.0'" >> ios/Podfile
-          # This will ensure that pod dependencies are properly included
+          echo "use_frameworks!" >> ios/Podfile
+          echo "target 'Runner' do" >> ios/Podfile
+          echo "  use_flutter!" >> ios/Podfile
+          echo "  pod 'app_settings', '~> 4.0.0'" >> ios/Podfile
+          echo "end" >> ios/Podfile
+          echo "post_install do |installer|" >> ios/Podfile
+          echo "  installer.pods_project.targets.each do |target|" >> ios/Podfile
+          echo "    flutter_additional_ios_build_settings(target)" >> ios/Podfile
+          echo "  end" >> ios/Podfile
+          echo "end" >> ios/Podfile
       - name: Install dependencies
         script: |
           flutter pub get
