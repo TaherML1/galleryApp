@@ -1,17 +1,31 @@
 platform :ios, '13.0'
 
-# Uncomment the next line to define a global platform for your project
-# platform :ios, '9.0'
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', '.flutter-plugins-dependencies'))
+  if File.exist?(generated_xcode_build_settings_path)
+    eval(File.read(generated_xcode_build_settings_path))
+    return
+  end
+  raise "#{generated_xcode_build_settings_path} does not exist. Please run 'flutter pub get' first"
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
 
 target 'Runner' do
-  # Pods for Runner
   use_frameworks!
+  use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-
-  # Add any additional CocoaPods you want here
-  # For example, if you need Firebase Auth, add:
-  # pod 'Firebase/Auth'
 end
 
 post_install do |installer|
