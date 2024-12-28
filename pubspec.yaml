@@ -56,8 +56,6 @@ flutter:
     - assets/NancyAjram.mp3
     - assets/animations/
 
- 
-
   fonts:
     - family: SanFrancisco
       fonts:
