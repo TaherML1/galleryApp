@@ -2,7 +2,7 @@
 platform :ios, '13.0'
 
 # Required by Flutter
-flutter_application_path = 'C:/flutter'
+flutter_application_path = File.expand_path('..', __dir__)
 load File.join(flutter_application_path, 'packages', 'flutter_tools', 'bin', 'podhelper.rb')
 
 
