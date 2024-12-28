@@ -5,7 +5,7 @@ workflows:
     name: iOS Build
     environment:
       flutter: stable
-      xcode: 14.3
+      xcode: latest
       cocoapods: default
     scripts:
       - name: Clean the project
