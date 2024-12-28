@@ -1,8 +1,11 @@
 version: 2.0
 
 workflows:
-  ios_build:
+  ios:
     name: iOS Build
+    environment:
+      flutter: stable
+      xcode: latest
     scripts:
       - name: Install dependencies
         script: |
@@ -12,3 +15,9 @@ workflows:
       - name: Build iOS
         script: |
           flutter build ios --release --no-codesign
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      email:
+        recipients:
+          - aboayham250@gmail.com
