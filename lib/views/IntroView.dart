@@ -191,11 +191,14 @@ class _InfoPageWidgetState extends State<InfoPageWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Info Page', style: TextStyle(color: Colors.white)),
+        title: const Text('Info Page', style: TextStyle(color: Colors.white ,fontSize: 26 ) ,  ),
         backgroundColor: const Color(0xFF9c51b6),
         iconTheme: const IconThemeData(
           color: Colors.white,
+          
         ),
+        automaticallyImplyLeading: false,
+        centerTitle: true,
       ),
       body: Stack(
         children: [
@@ -213,9 +216,9 @@ class _InfoPageWidgetState extends State<InfoPageWidget> {
                   child: PageView(
                     controller: _pageController, // Assign the PageController
                     children: [
-                      _buildIntroPage('Doğum günün dolayıla bu uygulamayı sana hediye etmek istiyorum ablacım ssssssssssssssssssssssssssssssssssssssssssssssssssssssss', const Color(0xFFCF9FFF)),
-                      _buildIntroPage('Uzun ve mutlu bir ömür diliyorum', const Color(0xFFCF9FFF)),
-                      _buildIntroPage('Seni çok seviyorum ❤️', const Color(0xFFCF9FFF)),
+                      _buildIntroPage('Tesadüf seni önüme çıkarmasaydı gene aynı şekilde, fakat her şeyden habersiz, yaşayıp gidecektim. Sen bana dünyada başka bir hayatın da mevcut olduğunu, benim bir de ruhum bulunduğunu öğrettin. ', const Color(0xFFCF9FFF)),
+                      _buildIntroPage('Uykumun içinde bir rüya,\nRüyamda bir gece,\nGeceden ben ..\nBir yere gidiyorum,\nDelice..\nAklımda sen..', const Color(0xFFCF9FFF)),
+                      _buildIntroPage('Harflerin gülüştüğünü senin adında gördüm\n Doğum günün kutlu olsun birtanecik ablacım 💜', const Color(0xFFCF9FFF)),
                     ],
                   ),
                 ),

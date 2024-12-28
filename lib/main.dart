@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:gallery_app/views/LottieExample.dart';
 import 'firebase_options.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:gallery_app/services/firebaseMessaging.dart';
 import 'package:logger/logger.dart';
+import 'package:gallery_app/views/LottieExample.dart';
 
 var logger = Logger();
 final getIt = GetIt.instance;
@@ -131,6 +133,7 @@ class MyApp extends StatelessWidget {
         '/favorites': (context) => FavoriteScreen(),
         '/random': (context) => randomPictureWidget(),
         '/intro': (context) => IntroInfoWidget(),
+        '/animation': (context) =>AnimationScreen(),
         '/info': (context) => InfoPageWidget(),
         '/notification': (context) => NotificationScreen(
           data: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>,

@@ -39,6 +39,7 @@ dependencies:
   gal: ^2.3.1
   carousel_slider: ^5.0.0
   audioplayers: ^6.1.0
+  lottie: ^3.2.0
 
 dev_dependencies:
   flutter_test:
@@ -53,6 +54,7 @@ flutter:
     - assets/avatar6.png
     - assets/typewriter.mp3
     - assets/NancyAjram.mp3
+    - assets/animations/
 
  
 

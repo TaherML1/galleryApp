@@ -78,7 +78,6 @@ exports.checkMemoriesAndSendNotification = functions.pubsub.schedule("every 30 m
           }
         });
 
-
         if (matchingPhotos.length === 0) {
           console.log("No matching memories found for today.");
           return;
@@ -86,15 +85,20 @@ exports.checkMemoriesAndSendNotification = functions.pubsub.schedule("every 30 m
 
         console.log(`Found ${matchingPhotos.length} matching memories for today.`);
 
+        // Select a photo to display in the notification
+        const selectedPhoto = matchingPhotos[0]; // You can choose any logic to select the photo
+
         // Prepare the FCM notification payload
         const payload = {
           notification: {
-            title: "Memory Reminder",
-            body: `Check out these memories from today!`,
+            title: "Birlikteki Anılarımız",
+            body: `Bugün, birlikte geçirdiğimiz o özel anlardan birini hatırlamak ister misin?`,
+            image: selectedPhoto.url,
             sound: "default",
           },
           data: {},
         };
+
 
         // Add each photo to the data field with unique keys
         matchingPhotos.forEach((photo, index) => {
@@ -112,6 +116,7 @@ exports.checkMemoriesAndSendNotification = functions.pubsub.schedule("every 30 m
               notification: {
                 title: payload.notification.title,
                 body: payload.notification.body,
+                image: payload.notification.image, // Include the image URL here
               },
               data: payload.data,
             },

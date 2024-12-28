@@ -24,6 +24,8 @@ class _HomescreenState extends State<Homescreen> {
    late AudioPlayer _audioPlayer;
    bool _isPlaying = true;
    Duration _lastPosition = Duration.zero; // Store the last position here
+   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+   
 
   @override
   void initState() {
@@ -75,6 +77,7 @@ class _HomescreenState extends State<Homescreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey ,
       appBar: AppBar(
         title: const Text('Photo Gallery', style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFF9c51b6),
@@ -268,18 +271,27 @@ class _HomescreenState extends State<Homescreen> {
                   ),
                 ),
               ),
-            const Expanded(
+             Expanded(
               child: Center(
-                child: Text(
-                  'Select a year to view photos.',
-                  style: TextStyle(
-                    color: Color(0xFF9c51b6),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 20,
-                  ),
-                ),
+               child: ElevatedButton(onPressed: (){
+                _scaffoldKey.currentState?.openDrawer();
+               }, child: Text('Selecet a year to view photos'),
+               style: ElevatedButton.styleFrom(
+                
+            backgroundColor: Color(0xFFD4BEE4), // Text (foreground) color
+            elevation: 5, // Shadow elevation
+            padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15), // Padding
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10), // Rounded corners
+               ),),
               ),
             ),
+           /* SizedBox(height: 20,),
+            ElevatedButton(onPressed: (){
+
+   Navigator.pushNamed(context, '/animation');
+            }, child: Text("click"))*/
+             )
           ],
         ),
       ),
