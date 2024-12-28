@@ -10,7 +10,7 @@ target 'Runner' do
   use_modular_headers!
 
   # Pods for Runner
-  pod 'cloud_firestore', :path => '.symlinks/plugins/cloud_firestore/ios'
+  # pod 'cloud_firestore', :path => '.symlinks/plugins/cloud_firestore/ios'
 
   # Add other dependencies here, such as:
   # pod 'firebase_core', :path => '.symlinks/plugins/firebase_core/ios'
