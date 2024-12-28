@@ -1,12 +1,7 @@
-version: 2.0
-
 workflows:
   ios:
     name: iOS Build
     platform: ios
-    dependencies:
-      caches:
-        - cocoapods
     scripts:
       - name: Install dependencies
         script: |
