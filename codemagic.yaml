@@ -23,7 +23,7 @@ workflows:
           echo "platform :ios, '13.0'" > ios/Podfile
           echo "workspace 'Runner.xcworkspace'" >> ios/Podfile
           # Ensure use_flutter! is correctly included (if missing)
-          echo "use_flutter!" >> ios/Podfile
+         
       - name: Install dependencies
         script: |
           flutter pub get
