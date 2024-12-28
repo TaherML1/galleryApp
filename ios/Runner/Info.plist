@@ -64,9 +64,5 @@
     <string>Alert</string>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>We need your permission to use your location for sending personalized notifications.</string>
-
-    <!-- Minimum OS Version -->
-    <key>MinimumOSVersion</key>
-    <string>13.0</string>
 </dict>
 </plist>
