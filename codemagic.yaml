@@ -40,7 +40,6 @@ workflows:
           echo "use_frameworks!" >> ios/Podfile
           echo "target 'Runner' do" >> ios/Podfile
           echo "  use_flutter!" >> ios/Podfile
-          echo "  pod 'app_settings', '~> 4.0.0'" >> ios/Podfile
           echo "end" >> ios/Podfile
           echo "post_install do |installer|" >> ios/Podfile
           echo "  installer.pods_project.targets.each do |target|" >> ios/Podfile
