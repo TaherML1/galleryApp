@@ -21,10 +21,11 @@ workflows:
         script: |
           cd ios
           pod deintegrate
+          echo "platform :ios, '13.0'" > ios/Podfile
           pod install --repo-update
       - name: Update Podfile if necessary
         script: |
-          echo "platform :ios, '13.0'" > ios/Podfile
+          
           echo "workspace 'Runner.xcworkspace'" >> ios/Podfile
           echo "use_flutter!" >> ios/Podfile
       - name: Install dependencies
