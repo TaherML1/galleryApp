@@ -3,19 +3,11 @@ platform :ios, '13.0'
 
 # Required by Flutter
 flutter_application_path = '../../'
-# load File.join(flutter_application_path, 'packages', 'flutter_tools', 'bin', 'podhelper.rb')
 
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
   # Pods for Runner
-  # pod 'cloud_firestore', :path => '.symlinks/plugins/cloud_firestore/ios'
-
-  # Add other dependencies here, such as:
-  # pod 'firebase_core', :path => '.symlinks/plugins/firebase_core/ios'
-  # pod 'firebase_auth', :path => '.symlinks/plugins/firebase_auth/ios'
-  # etc.
-
-  # Ensure you have other necessary dependencies for Firebase
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
