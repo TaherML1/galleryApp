@@ -5,7 +5,7 @@ workflows:
     name: iOS Build
     environment:
       flutter: stable
-      xcode: latest
+      xcode: 14.3
       cocoapods: default
     scripts:
       - name: Clean the project
@@ -26,6 +26,13 @@ workflows:
           flutter precache
           flutter pub get
           flutter create .
+      - name: Install specific CocoaPods version
+        script: |
+          gem cleanup
+          brew uninstall cocoapods
+          sudo gem uninstall cocoapods
+          sudo gem install cocoapods -v 1.10.0 -n /usr/local/bin
+          sudo gem install cocoapods-user-defined-build-types
       - name: Update Podfile if necessary
         script: |
           echo "platform :ios, '13.0'" > ios/Podfile
