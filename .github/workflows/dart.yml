@@ -24,6 +24,9 @@ jobs:
       - name: Get Flutter dependencies
         run: flutter pub get
 
+      - name: Flutter precache
+        run: flutter precache
+
       - name: Install CocoaPods
         run: gem install cocoapods
 
