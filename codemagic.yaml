@@ -6,7 +6,7 @@ workflows:
     environment:
       flutter: stable
       xcode: latest
-      cocoapods: latest  # Ensure CocoaPods is installed and up to date
+      cocoapods: default  # Use the default CocoaPods version provided by Codemagic
     scripts:
       - name: Clean the project
         script: |
