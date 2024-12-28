@@ -30,9 +30,6 @@ jobs:
       - name: Update iOS Deployment Target
         run: /usr/libexec/PlistBuddy -c "Set :MinimumOSVersion 13.0" "ios/Flutter/AppFrameworkInfo.plist"
 
-      - name: Generate Podfile
-        run: flutter build ios --release --no-codesign
-
       - name: Install CocoaPods
         run: gem install cocoapods
 
@@ -43,6 +40,9 @@ jobs:
       - name: Install Pods
         run: pod install
         working-directory: ios
+
+      - name: Build iOS release
+        run: flutter build ios --release --no-codesign
 
       - run: mkdir Payload
         working-directory: build/ios/iphoneos
