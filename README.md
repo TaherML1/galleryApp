@@ -1,2 +1,2 @@
 # gallery_app
- dd
+customized gallery app
